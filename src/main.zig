@@ -30,34 +30,38 @@ pub fn main(init: std.process.Init) !void {
 
     var backward_lines = mem.splitBackwardsAny(u8, content, "\n\r");
 
-    // var hset: std.AutoHashMap([]const u8, void) = .init(arena);
     var hset: std.StringHashMap(void) = .init(arena);
 
+    var new_lines: std.ArrayList([]const u8) = .empty;
+    defer new_lines.deinit(arena);
+
     var i: usize = 0;
+    var time_stamp_flag = false;
 
     while (backward_lines.next()) |line| {
-        const clean_line = std.mem.trim(u8, line, " ");
+        const clean_line = mem.trim(u8, line, " ");
+        if (hset.contains(clean_line)) continue;
 
         if (std.mem.startsWith(u8, clean_line, "#")) {
-            i += 1;
-            continue;
-        } // skip time_stamp
+            if (time_stamp_flag) continue else time_stamp_flag = true;
+        } else time_stamp_flag = false;
 
-        if (hset.contains(clean_line)) {
-            // content[backward_lines.index] = "";
-            // continue;
-            std.debug.print("Already exist: {s}\n", .{clean_line});
-            i += 1;
-            continue;
-        }
         try hset.put(clean_line, {});
+        // try new_lines.append(arena, clean_line);
+        try new_lines.insert(arena, 0, line);
 
-        std.debug.print("{s}\n", .{clean_line});
+        // std.debug.print("{s}\n", .{clean_line});
         i += 1;
     }
 
     i -= 1;
-    std.debug.print("\nNumber of lines: {}\n", .{i});
+    defer std.debug.print("\nNumber of lines: {}\n", .{i});
+
+    for (new_lines.items) |item| {
+        std.debug.print("{s}\n", .{item});
+    }
+
+    // TODO: now write content of new_line into new file.
 
     // var file_reader = histfile_file.reader(init.io, &.{});
     // const reader = &file_reader.interface;
