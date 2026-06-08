@@ -1,34 +1,93 @@
 const std = @import("std");
 const Io = std.Io;
+const mem = std.mem;
 
 const histclean = @import("histclean");
 
 pub fn main(init: std.process.Init) !void {
-    // Prints to stderr, unbuffered, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    const io = init.io;
+    const arena: mem.Allocator = init.arena.allocator();
 
-    // This is appropriate for anything that lives as long as the process.
-    const arena: std.mem.Allocator = init.arena.allocator();
+    const env = init.environ_map;
+    const home_var = env.get("HOME").?;
+    const histfile_var: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
 
-    // Accessing command line arguments:
-    const args = try init.minimal.args.toSlice(arena);
-    for (args) |arg| {
-        std.log.info("arg: {s}", .{arg});
+    defer std.debug.print("Home is: {s}\n", .{home_var});
+    defer std.debug.print("History is: {s}\n", .{histfile_var});
+    defer std.debug.print("\n\n\n", .{});
+
+    // var v : std.Io.File = .stdin();
+
+    // const histfile_file = try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_only });
+    const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_only });
+    defer histfile_file.close(io);
+
+    const file_stat = try histfile_file.stat(io);
+
+    const content = try arena.alloc(u8, file_stat.size);
+    defer arena.free(content);
+    _ = try histfile_file.readPositionalAll(io, content, 0);
+
+    var backward_lines = mem.splitBackwardsAny(u8, content, "\n\r");
+
+    // var hset: std.AutoHashMap([]const u8, void) = .init(arena);
+    var hset: std.StringHashMap(void) = .init(arena);
+
+    var i: usize = 0;
+
+    while (backward_lines.next()) |line| {
+        const clean_line = std.mem.trim(u8, line, " ");
+
+        if (std.mem.startsWith(u8, clean_line, "#")) {
+            i += 1;
+            continue;
+        } // skip time_stamp
+
+        if (hset.contains(clean_line)) {
+            // content[backward_lines.index] = "";
+            // continue;
+            std.debug.print("Already exist: {s}\n", .{clean_line});
+            i += 1;
+            continue;
+        }
+        try hset.put(clean_line, {});
+
+        std.debug.print("{s}\n", .{clean_line});
+        i += 1;
     }
 
-    // In order to do I/O operations need an `Io` instance.
-    const io = init.io;
+    i -= 1;
+    std.debug.print("\nNumber of lines: {}\n", .{i});
 
-    // Stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    var stdout_buffer: [1024]u8 = undefined;
-    var stdout_file_writer: Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
-    const stdout_writer = &stdout_file_writer.interface;
+    // var file_reader = histfile_file.reader(init.io, &.{});
+    // const reader = &file_reader.interface;
+    // const bytes_read = try reader.read(&content);
 
-    try histclean.printAnotherMessage(stdout_writer);
-
-    try stdout_writer.flush(); // Don't forget to flush!
+    // // Prints to stderr, unbuffered, ignoring potential errors.
+    // std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    //
+    // // This is appropriate for anything that lives as long as the process.
+    // const arena: mem.Allocator = init.arena.allocator();
+    //
+    // // Accessing command line arguments:
+    // const args = try init.minimal.args.toSlice(arena);
+    // for (args) |arg| {
+    //     std.log.info("arg: {s}", .{arg});
+    // }
+    //
+    // // In order to do I/O operations need an `Io` instance.
+    // const io = init.io;
+    //
+    // // Stdout is for the actual output of your application, for example if you
+    // // are implementing gzip, then only the compressed bytes should be sent to
+    // // stdout, not any debugging messages.
+    // var stdout_buffer: [1024]u8 = undefined;
+    // var stdout_file_writer: Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
+    // const stdout_writer = &stdout_file_writer.interface;
+    //
+    // try history_cleaner.printAnotherMessage(stdout_writer);
+    //
+    // try stdout_writer.flush(); // Don't forget to flush!
 }
 
 test "simple test" {
