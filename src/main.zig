@@ -65,9 +65,9 @@ pub fn main(init: std.process.Init) !void {
     var result_writer = histfile_file.writer(io, &.{});
     const writer = &result_writer.interface;
 
-    for (new_lines.items) |item| {
-        // _ = try writer.write(item);
-        _ = try writer.print("{s}\n", .{item});
+    _ = try writer.print("{s}", .{new_lines.items[0]});
+    for (new_lines.items[1..]) |item| {
+        _ = try writer.print("\n{s}", .{item});
     }
 
     try writer.flush();
