@@ -49,7 +49,7 @@ pub fn main(init: std.process.Init) !void {
 
         try hset.put(clean_line, {});
         // try new_lines.append(arena, clean_line);
-        try new_lines.insert(arena, 0, line);
+        try new_lines.insert(arena, 0, clean_line);
 
         // std.debug.print("{s}\n", .{clean_line});
         i += 1;
