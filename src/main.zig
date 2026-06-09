@@ -19,7 +19,7 @@ pub fn main(init: std.process.Init) !void {
     // var v : std.Io.File = .stdin();
 
     // const histfile_file = try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_only });
-    const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_only });
+    const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
     defer histfile_file.close(io);
 
     const file_stat = try histfile_file.stat(io);
@@ -40,6 +40,7 @@ pub fn main(init: std.process.Init) !void {
 
     while (backward_lines.next()) |line| {
         const clean_line = mem.trim(u8, line, " ");
+        // TODO: write conflicts to history.conflicts file
         if (hset.contains(clean_line)) continue;
 
         if (std.mem.startsWith(u8, clean_line, "#")) {
@@ -57,11 +58,19 @@ pub fn main(init: std.process.Init) !void {
     i -= 1;
     defer std.debug.print("\nNumber of lines: {}\n", .{i});
 
+    // const res_file: Io.File = try Io.Dir.cwd().create(io, "~/Projects/histclean/test/result.txt", .{});
+    // defer res_file.close(io);
+
+    try histfile_file.setLength(io, 0);
+    var result_writer = histfile_file.writer(io, &.{});
+    const writer = &result_writer.interface;
+
     for (new_lines.items) |item| {
-        std.debug.print("{s}\n", .{item});
+        // _ = try writer.write(item);
+        _ = try writer.print("{s}\n", .{item});
     }
 
-    // TODO: now write content of new_line into new file.
+    try writer.flush();
 
     // var file_reader = histfile_file.reader(init.io, &.{});
     // const reader = &file_reader.interface;
