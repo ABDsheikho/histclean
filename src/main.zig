@@ -20,6 +20,8 @@ pub fn main(init: std.process.Init) !void {
     var args = try init.minimal.args.iterateAllocator(arena);
     defer args.deinit();
 
+    const env = init.environ_map;
+
     _ = args.next(); // discard binary name
     var arg_struct = Args{};
     while (args.next()) |arg| {
@@ -40,12 +42,12 @@ pub fn main(init: std.process.Init) !void {
 
     if (arg_struct.help) return print_help();
 
-    // var v : std.Io.File = .stdin();
+    const histfile_path = try getHistoryPath(arg_struct.input_path, env, arena);
 
-    // const histfile = try std.Io.Dir.openFileAbsolute(io, histfile_path, .{ .mode = .read_write });
-    // const histfile = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
-    const histfile = hist_scope: {
-        if (arg_struct.input_path) |path| {
+
+    const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
+    errdefer histfile.close(io);
+
             if (std.fs.path.isAbsolute(path)) {
                 break :hist_scope try Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_write });
             } else {
@@ -86,10 +88,7 @@ pub fn main(init: std.process.Init) !void {
         } else time_stamp_flag = false;
 
         try hset.put(clean_line, {});
-        // try new_lines.append(arena, clean_line);
         try new_lines.insert(arena, 0, clean_line);
-
-        // std.debug.print("{s}\n", .{clean_line});
     }
 
     // const res_file: Io.File = try Io.Dir.cwd().create(io, "~/Projects/histclean/test/result.txt", .{});
@@ -156,6 +155,19 @@ fn print_help() void {
 
 fn dryRun() void {
     return;
+}
+
+fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
+    if (file_path) |path| {
+        return path;
+    }
+    if (env.get("HISTFILE")) |histFile| {
+        return histFile;
+    }
+    if (env.get("HOME")) |home| {
+        return try Io.Dir.path.join(allocator, &[_][]const u8{ home, "history" });
+    }
+    return error.HistorFileNotFound;
 }
 
 test "simple test" {
