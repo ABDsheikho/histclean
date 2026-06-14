@@ -40,20 +40,8 @@ pub fn main(init: std.process.Init) !void {
     const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
     errdefer histfile.close(io);
 
-            if (std.fs.path.isAbsolute(path)) {
-                break :hist_scope try Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_write });
-            } else {
-                break :hist_scope try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_write });
-            }
-        } else {
-            const env = init.environ_map;
-            const home_var = env.get("HOME").?;
-            const histfile_path: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
-
-            break :hist_scope try std.Io.Dir.openFileAbsolute(io, histfile_path, .{ .mode = .read_write });
-        }
-    };
-    defer histfile.close(io);
+    // backup history file before proceeding
+    if (arg_struct.backup and !arg_struct.dryRun) try backupFile(histfile_path, io);
 
     const file_stat = try histfile.stat(io);
 
@@ -171,6 +159,13 @@ fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocat
         return try Io.Dir.path.join(allocator, &[_][]const u8{ home, "history" });
     }
     return error.HistorFileNotFound;
+}
+
+fn backupFile(path: []const u8, io: std.Io) !void {
+    var buffer: [Io.Dir.max_path_bytes]u8 = undefined;
+    const cwd = Io.Dir.cwd();
+    const dest_path = try std.fmt.bufPrint(&buffer, "{s}.backup", .{path});
+    try std.Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
 }
 
 test "simple test" {
