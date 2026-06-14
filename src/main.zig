@@ -71,11 +71,10 @@ pub fn main(init: std.process.Init) !void {
         try new_lines.insert(arena, 0, clean_line);
     }
 
-    // const res_file: Io.File = try Io.Dir.cwd().create(io, "~/Projects/histclean/test/result.txt", .{});
-    // defer res_file.close(io);
+    const output_file = try getOutputFile(arg_struct, io, &histfile);
+    defer output_file.close(io);
 
-    try histfile.setLength(io, 0);
-    var result_writer = histfile.writer(io, &.{});
+    var result_writer = output_file.writer(io, &.{});
     const writer = &result_writer.interface;
 
     _ = try writer.print("{s}", .{new_lines.items[0]});
@@ -159,6 +158,17 @@ fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocat
         return try Io.Dir.path.join(allocator, &[_][]const u8{ home, "history" });
     }
     return error.HistorFileNotFound;
+}
+
+fn getOutputFile(args: Args, io: Io, defaultFile: *const Io.File) !Io.File {
+    if (args.dryRun) {
+        return std.Io.File.stdout();
+    }
+    if (args.output_path) |path| {
+        return try Io.Dir.createFile(Io.Dir.cwd(), io, path, .{});
+    }
+    try defaultFile.setLength(io, 0);
+    return defaultFile.*;
 }
 
 fn backupFile(path: []const u8, io: std.Io) !void {
