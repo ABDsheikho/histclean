@@ -42,8 +42,23 @@ pub fn main(init: std.process.Init) !void {
 
     // var v : std.Io.File = .stdin();
 
-    // const histfile_file = try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_only });
-    const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
+    // const histfile_file = try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_write });
+    // const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
+    const histfile_file = scope: {
+        if (arg_struct.input_path) |path| {
+            if (std.fs.path.isAbsolute(path)) {
+                break :scope try Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_write });
+            } else {
+                break :scope try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_write });
+            }
+        } else {
+            const env = init.environ_map;
+            const home_var = env.get("HOME").?;
+            const histfile_var: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
+
+            break :scope try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_write });
+        }
+    };
     defer histfile_file.close(io);
 
     const file_stat = try histfile_file.stat(io);
