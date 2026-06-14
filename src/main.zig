@@ -28,19 +28,11 @@ pub fn main(init: std.process.Init) !void {
         if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) arg_struct.help = true;
         if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--dry-run")) arg_struct.dryRun = true;
         if (std.mem.eql(u8, arg, "-b") or std.mem.eql(u8, arg, "--backup")) arg_struct.backup = true;
-        if (std.mem.eql(u8, arg, "-i") or std.mem.eql(u8, arg, "--input")) {
-            const path = args.next() orelse return;
-            if (std.mem.startsWith(u8, path, "-")) return;
-            arg_struct.input_path = path;
-        }
-        if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
-            const path = args.next() orelse return;
-            if (std.mem.startsWith(u8, path, "-")) return;
-            arg_struct.output_path = path;
-        }
+        if (std.mem.eql(u8, arg, "-i") or std.mem.eql(u8, arg, "--input")) assignPath(&arg_struct.input_path, &args);
+        if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) assignPath(&arg_struct.output_path, &args);
     }
 
-    if (arg_struct.help) return print_help();
+    if (arg_struct.help) return printHelp();
 
     const histfile_path = try getHistoryPath(arg_struct.input_path, env, arena);
 
@@ -144,7 +136,7 @@ pub fn main(init: std.process.Init) !void {
 //   - write to file (any file given a path)
 //   - help
 
-fn print_help() void {
+fn printHelp() void {
     const msg =
         \\This is a help message
         \\new line
@@ -155,6 +147,17 @@ fn print_help() void {
 
 fn dryRun() void {
     return;
+}
+
+fn asignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
+fn assignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
+    if (args.next()) |path| check: {
+        if (std.mem.startsWith(u8, path, "-")) break :check;
+        str.* = path;
+        return;
+    }
+    printHelp();
+    std.process.exit(1);
 }
 
 fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
