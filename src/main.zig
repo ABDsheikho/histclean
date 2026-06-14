@@ -95,6 +95,14 @@ pub fn main(init: std.process.Init) !void {
     // try stdout_writer.flush(); // Don't forget to flush!
 }
 
+// TODO:
+//  functions/flags: (function for each flag)
+//   - dry-run (print output to stdout)
+//   - backup (save original file into file.backup)
+//   - read from file (any file given a path)
+//   - write to file (any file given a path)
+//   - help
+
 test "simple test" {
     const gpa = std.testing.allocator;
     var list: std.ArrayList(i32) = .empty;
