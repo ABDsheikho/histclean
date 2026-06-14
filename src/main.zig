@@ -12,9 +12,6 @@ pub fn main(init: std.process.Init) !void {
     const home_var = env.get("HOME").?;
     const histfile_var: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
 
-    defer std.debug.print("Home is: {s}\n", .{home_var});
-    defer std.debug.print("History is: {s}\n", .{histfile_var});
-    defer std.debug.print("\n\n\n", .{});
 
     // var v : std.Io.File = .stdin();
 
@@ -35,7 +32,6 @@ pub fn main(init: std.process.Init) !void {
     var new_lines: std.ArrayList([]const u8) = .empty;
     defer new_lines.deinit(arena);
 
-    var i: usize = 0;
     var time_stamp_flag = false;
 
     while (backward_lines.next()) |line| {
@@ -52,11 +48,7 @@ pub fn main(init: std.process.Init) !void {
         try new_lines.insert(arena, 0, clean_line);
 
         // std.debug.print("{s}\n", .{clean_line});
-        i += 1;
     }
-
-    i -= 1;
-    defer std.debug.print("\nNumber of lines: {}\n", .{i});
 
     // const res_file: Io.File = try Io.Dir.cwd().create(io, "~/Projects/histclean/test/result.txt", .{});
     // defer res_file.close(io);
