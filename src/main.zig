@@ -42,30 +42,30 @@ pub fn main(init: std.process.Init) !void {
 
     // var v : std.Io.File = .stdin();
 
-    // const histfile_file = try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_write });
-    // const histfile_file = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
-    const histfile_file = scope: {
+    // const histfile = try std.Io.Dir.openFileAbsolute(io, histfile_path, .{ .mode = .read_write });
+    // const histfile = try std.Io.Dir.openFile(Io.Dir.cwd(), io, "./test/history", .{ .mode = .read_write });
+    const histfile = hist_scope: {
         if (arg_struct.input_path) |path| {
             if (std.fs.path.isAbsolute(path)) {
-                break :scope try Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_write });
+                break :hist_scope try Io.Dir.openFileAbsolute(io, path, .{ .mode = .read_write });
             } else {
-                break :scope try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_write });
+                break :hist_scope try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_write });
             }
         } else {
             const env = init.environ_map;
             const home_var = env.get("HOME").?;
-            const histfile_var: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
+            const histfile_path: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
 
-            break :scope try std.Io.Dir.openFileAbsolute(io, histfile_var, .{ .mode = .read_write });
+            break :hist_scope try std.Io.Dir.openFileAbsolute(io, histfile_path, .{ .mode = .read_write });
         }
     };
-    defer histfile_file.close(io);
+    defer histfile.close(io);
 
-    const file_stat = try histfile_file.stat(io);
+    const file_stat = try histfile.stat(io);
 
     const content = try arena.alloc(u8, file_stat.size);
     defer arena.free(content);
-    _ = try histfile_file.readPositionalAll(io, content, 0);
+    _ = try histfile.readPositionalAll(io, content, 0);
 
     var backward_lines = mem.splitBackwardsAny(u8, content, "\n\r");
 
@@ -95,8 +95,8 @@ pub fn main(init: std.process.Init) !void {
     // const res_file: Io.File = try Io.Dir.cwd().create(io, "~/Projects/histclean/test/result.txt", .{});
     // defer res_file.close(io);
 
-    try histfile_file.setLength(io, 0);
-    var result_writer = histfile_file.writer(io, &.{});
+    try histfile.setLength(io, 0);
+    var result_writer = histfile.writer(io, &.{});
     const writer = &result_writer.interface;
 
     _ = try writer.print("{s}", .{new_lines.items[0]});
@@ -106,7 +106,7 @@ pub fn main(init: std.process.Init) !void {
 
     try writer.flush();
 
-    // var file_reader = histfile_file.reader(init.io, &.{});
+    // var file_reader = histfile.reader(init.io, &.{});
     // const reader = &file_reader.interface;
     // const bytes_read = try reader.read(&content);
 
