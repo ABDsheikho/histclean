@@ -25,17 +25,16 @@ pub fn main(init: std.process.Init) !void {
     _ = args.next(); // discard binary name
     var arg_struct = Args{};
     while (args.next()) |arg| {
-        if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) arg_struct.help = true;
-        if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--dry-run")) arg_struct.dryRun = true;
-        if (std.mem.eql(u8, arg, "-b") or std.mem.eql(u8, arg, "--backup")) arg_struct.backup = true;
-        if (std.mem.eql(u8, arg, "-i") or std.mem.eql(u8, arg, "--input")) assignPath(&arg_struct.input_path, &args);
-        if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) assignPath(&arg_struct.output_path, &args);
+        if (mem.eql(u8, arg, "-h") or mem.eql(u8, arg, "--help")) arg_struct.help = true;
+        if (mem.eql(u8, arg, "-d") or mem.eql(u8, arg, "--dry-run")) arg_struct.dryRun = true;
+        if (mem.eql(u8, arg, "-b") or mem.eql(u8, arg, "--backup")) arg_struct.backup = true;
+        if (mem.eql(u8, arg, "-i") or mem.eql(u8, arg, "--input")) assignPath(&arg_struct.input_path, &args);
+        if (mem.eql(u8, arg, "-o") or mem.eql(u8, arg, "--output")) assignPath(&arg_struct.output_path, &args);
     }
 
     if (arg_struct.help) return printHelp();
 
     const histfile_path = try getHistoryPath(arg_struct.input_path, env, arena);
-
 
     const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
     errdefer histfile.close(io);
@@ -57,13 +56,11 @@ pub fn main(init: std.process.Init) !void {
     defer new_lines.deinit(arena);
 
     var time_stamp_flag = false;
-
     while (backward_lines.next()) |line| {
         const clean_line = mem.trim(u8, line, " ");
-        // TODO: write conflicts to history.conflicts file
         if (hset.contains(clean_line)) continue;
 
-        if (std.mem.startsWith(u8, clean_line, "#")) {
+        if (mem.startsWith(u8, clean_line, "#")) {
             if (time_stamp_flag) continue else time_stamp_flag = true;
         } else time_stamp_flag = false;
 
@@ -115,14 +112,6 @@ pub fn main(init: std.process.Init) !void {
     // try stdout_writer.flush(); // Don't forget to flush!
 }
 
-// TODO:
-//  functions/flags: (function for each flag)
-//   - dry-run (print output to stdout)
-//   - backup (save original file into file.backup)
-//   - read from file (any file given a path)
-//   - write to file (any file given a path)
-//   - help
-
 fn printHelp() void {
     const msg =
         \\This is a help message
@@ -136,10 +125,9 @@ fn dryRun() void {
     return;
 }
 
-fn asignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
 fn assignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
     if (args.next()) |path| check: {
-        if (std.mem.startsWith(u8, path, "-")) break :check;
+        if (mem.startsWith(u8, path, "-")) break :check;
         str.* = path;
         return;
     }
@@ -162,7 +150,7 @@ fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocat
 
 fn getOutputFile(args: Args, io: Io, defaultFile: *const Io.File) !Io.File {
     if (args.dryRun) {
-        return std.Io.File.stdout();
+        return Io.File.stdout();
     }
     if (args.output_path) |path| {
         return try Io.Dir.createFile(Io.Dir.cwd(), io, path, .{});
@@ -171,11 +159,11 @@ fn getOutputFile(args: Args, io: Io, defaultFile: *const Io.File) !Io.File {
     return defaultFile.*;
 }
 
-fn backupFile(path: []const u8, io: std.Io) !void {
+fn backupFile(path: []const u8, io: Io) !void {
     var buffer: [Io.Dir.max_path_bytes]u8 = undefined;
     const cwd = Io.Dir.cwd();
     const dest_path = try std.fmt.bufPrint(&buffer, "{s}.backup", .{path});
-    try std.Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
+    try Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
 }
 
 test "simple test" {
