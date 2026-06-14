@@ -4,14 +4,41 @@ const mem = std.mem;
 
 const histclean = @import("histclean");
 
+const Args = struct {
+    help: bool = false,
+    dryRun: bool = false,
+    backup: bool = false,
+    input_path: ?[]const u8 = null,
+    output_path: ?[]const u8 = null,
+};
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const arena: mem.Allocator = init.arena.allocator();
 
-    const env = init.environ_map;
-    const home_var = env.get("HOME").?;
-    const histfile_var: []const u8 = if (env.get("HISTFILE")) |value| value else try mem.concat(arena, u8, &[_][]const u8{ home_var, "/history" });
+    // Accessing command line arguments:
+    var args = try init.minimal.args.iterateAllocator(arena);
+    defer args.deinit();
 
+    _ = args.next(); // discard binary name
+    var arg_struct = Args{};
+    while (args.next()) |arg| {
+        if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) arg_struct.help = true;
+        if (std.mem.eql(u8, arg, "-d") or std.mem.eql(u8, arg, "--dry-run")) arg_struct.dryRun = true;
+        if (std.mem.eql(u8, arg, "-b") or std.mem.eql(u8, arg, "--backup")) arg_struct.backup = true;
+        if (std.mem.eql(u8, arg, "-i") or std.mem.eql(u8, arg, "--input")) {
+            const path = args.next() orelse return;
+            if (std.mem.startsWith(u8, path, "-")) return;
+            arg_struct.input_path = path;
+        }
+        if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
+            const path = args.next() orelse return;
+            if (std.mem.startsWith(u8, path, "-")) return;
+            arg_struct.output_path = path;
+        }
+    }
+
+    if (arg_struct.help) return print_help();
 
     // var v : std.Io.File = .stdin();
 
@@ -102,6 +129,19 @@ pub fn main(init: std.process.Init) !void {
 //   - read from file (any file given a path)
 //   - write to file (any file given a path)
 //   - help
+
+fn print_help() void {
+    const msg =
+        \\This is a help message
+        \\new line
+        \\
+    ;
+    std.debug.print("{s}", .{msg});
+}
+
+fn dryRun() void {
+    return;
+}
 
 test "simple test" {
     const gpa = std.testing.allocator;
