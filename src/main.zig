@@ -84,15 +84,28 @@ pub fn main(init: std.process.Init) !void {
 
 fn printHelp() void {
     const msg =
-        \\This is a help message
-        \\new line
+        \\Usage: histclean [options]
+        \\
+        \\Clean duplicate shell commands from history files in-place, while
+        \\preserving the most recent unique occurrence of each command.
+        \\
+        \\Options:
+        \\  -h, --help             Show this help message and exit
+        \\  -d, --dry-run          Print the resulted output to stdout without
+        \\                         modifying anything.
+        \\  -b, --backup           Create a .backup copy of the history file
+        \\                         before modifying it
+        \\  -i, --input <FILE>     Read history from the specified file instead
+        \\                         of the default shell history file
+        \\  -o, --output <FILE>    Write resulted output to the specified file
+        \\                         instead of overwriting the input file
+        \\
+        \\The default history file is determined by the HISTFILE environment variable,
+        \\or $HOME/history if HISTFILE is not set.
+        \\
         \\
     ;
     std.debug.print("{s}", .{msg});
-}
-
-fn dryRun() void {
-    return;
 }
 
 fn assignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
@@ -101,6 +114,7 @@ fn assignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
         str.* = path;
         return;
     }
+    std.debug.print("Error parsing the file path\n\n", .{});
     printHelp();
     std.process.exit(1);
 }
