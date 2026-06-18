@@ -114,7 +114,15 @@ fn assignPath(str: *?[]const u8, args: *std.process.Args.Iterator) void {
         str.* = path;
         return;
     }
-    std.debug.print("Error parsing the file path\n\n", .{});
+    const error_msg =
+        \\Error: can't parse file-path!
+        \\       Did you pass another flag before passing file-path?
+        \\           ex: histclean -i -d     -> error
+        \\       Or does the file-path start with a hyphen (-)?
+        \\           ex: histclean -i -/path/to/error
+        \\
+    ;
+    std.debug.print(error_msg, .{});
     printHelp();
     std.process.exit(1);
 }
