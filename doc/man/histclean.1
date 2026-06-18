@@ -1,0 +1,26 @@
+.TH HISTCLEAN 1 2026-06-15 "" "General Commands Manual"
+.SH NAME
+histclean \- deduplicate shell history files
+.SH SYNOPSIS
+.B histclean
+.RB [ options ]
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show help message and exit.
+.TP
+.BR \-d ", " \-\-dry-run
+Print deduplicated history to stdout without modifying the file.
+.TP
+.BR \-b ", " \-\-backup
+Create a .backup copy before modifying.
+.TP
+.BR \-i ", " \-\-input " \fIfile\fP"
+Read from
+.I file
+instead of the default.
+.TP
+.BR \-o ", " \-\-output " \fIfile\fP"
+Write to
+.I file
+instead of overwriting the input.
