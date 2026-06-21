@@ -1,0 +1,31 @@
+HISTCLEAN(1) ["" ["General Commands Manual"]]
+
+# NAME
+
+histclean - clean shell history file
+
+# SYNOPSIS
+
+*histclean* [options]
+
+# DESCRIPTION
+
+Clean duplicate shell commands from history files in-place, while
+preserving the most recent unique occurrence of each command.
+
+# OPTIONS
+
+*-h*, *--help*
+	Show help message and exit.
+
+*-d*, *--dry-run*
+	Print deduplicated history to stdout without modifying the file.
+
+*-b*, *--backup*
+	Create a .backup copy before modifying.
+
+*-i*, *--input* <file>
+	Read from <file> instead of the default.
+
+*-o*, *--output* <file>
+	Write to <file> instead of overwriting the input.

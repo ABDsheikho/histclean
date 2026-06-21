@@ -115,6 +115,10 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
+    const man_step = b.step("man", "Generate man page");
+    const man_cmd = b.addSystemCommand(&[_][]const u8{"./scipts/man-gen.sh"});
+    man_step.dependOn(&man_cmd.step);
+
     // Creates an executable that will run `test` blocks from the provided module.
     // Here `mod` needs to define a target, which is why earlier we made sure to
     // set the releative field.
