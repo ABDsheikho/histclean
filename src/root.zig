@@ -2,6 +2,11 @@ const std = @import("std");
 const mem = std.mem;
 const Io = std.Io;
 
+const _parse_args = @import("./parse_args.zig");
+pub const Args = _parse_args.Args;
+pub const parseArgs = _parse_args.parseArgs;
+pub const parseArgsFromSlice = _parse_args.parseArgsFromSlice;
+
 pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList([]const u8) {
     // define lines as array of strings
     var lines: std.ArrayList([]const u8) = .empty;
