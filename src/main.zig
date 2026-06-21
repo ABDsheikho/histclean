@@ -35,14 +35,14 @@ pub fn main(init: std.process.Init) !void {
     defer arena.free(content);
     _ = try histfile.readPositionalAll(io, content, 0);
 
-    var new_lines = try filterLines(content, arena);
+    var new_lines = try histclean.filterLines(content, arena);
     defer new_lines.deinit(arena);
 
     const output_file = try openOutputFile(args, io, &histfile);
     defer output_file.close(io);
 
     var result_writer = output_file.writer(io, &.{});
-    try writeLines(&result_writer.interface, new_lines);
+    try histclean.writeLines(&result_writer.interface, new_lines);
 }
 
 fn parseArgs(args: std.process.Args, allocator: mem.Allocator) !Args {
@@ -139,82 +139,4 @@ fn backupFile(path: []const u8, io: Io) !void {
     try Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
 }
 
-fn filterLines(content: []u8, allocator: mem.Allocator) !std.ArrayList([]const u8) {
-    // define lines as array of strings
-    var lines: std.ArrayList([]const u8) = .empty;
-
-    // Read content from end to start
-    var backward_lines = mem.splitBackwardsAny(u8, content, "\n\r");
-
-    // define a set to keep record of unique lines
-    var hash_set: std.StringHashMap(void) = .init(allocator);
-    defer hash_set.deinit();
-
-    // define a flag to prevent consecutive time-stamps (empty command)
-    var time_stamp_flag = false;
-
-    while (backward_lines.next()) |line| {
-        const clean_line = mem.trim(u8, line, " ");
-        if (hash_set.contains(clean_line)) continue;
-
-        // for consecutive time-stamps, keep the first, skip the rest
-        if (mem.startsWith(u8, clean_line, "#")) {
-            if (time_stamp_flag) continue else time_stamp_flag = true;
-        } else time_stamp_flag = false;
-
-        try hash_set.put(clean_line, {});
-        try lines.insert(allocator, 0, clean_line);
-    }
-    return lines;
-}
-
-fn writeLines(writer: *Io.Writer, lines: std.ArrayList([]const u8)) !void {
-    // Write first line without \n newline char
-    // The next lines start with \n newline char
-    // This prevent getting empty line at the end of a file
-    try writer.print("{s}", .{lines.items[0]});
-    for (lines.items[1..]) |item| {
-        try writer.print("\n{s}", .{item});
-    }
-
-    try writer.flush();
-}
-
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
-
-test "fuzz example" {
-    try std.testing.fuzz({}, testOne, .{});
-}
-
-fn testOne(context: void, smith: *std.testing.Smith) !void {
-    _ = context;
-    // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(u8) = .empty;
-    defer list.deinit(gpa);
-    while (!smith.eos()) switch (smith.value(enum { add_data, dup_data })) {
-        .add_data => {
-            const slice = try list.addManyAsSlice(gpa, smith.value(u4));
-            smith.bytes(slice);
-        },
-        .dup_data => {
-            if (list.items.len == 0) continue;
-            if (list.items.len > std.math.maxInt(u32)) return error.SkipZigTest;
-            const len = smith.valueRangeAtMost(u32, 1, @min(32, list.items.len));
-            const off = smith.valueRangeAtMost(u32, 0, @intCast(list.items.len - len));
-            try list.appendSlice(gpa, list.items[off..][0..len]);
-            try std.testing.expectEqualSlices(
-                u8,
-                list.items[off..][0..len],
-                list.items[list.items.len - len ..],
-            );
-        },
-    };
-}
+test { }
