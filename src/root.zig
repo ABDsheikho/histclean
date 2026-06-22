@@ -22,7 +22,7 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
     var time_stamp_flag = false;
 
     while (backward_lines.next()) |line| {
-        const clean_line = mem.trim(u8, line, " ");
+        const clean_line = mem.trim(u8, line, " \t");
         if (hash_set.contains(clean_line)) continue;
 
         // for consecutive time-stamps, keep the first, skip the rest
