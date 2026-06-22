@@ -37,6 +37,8 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
 }
 
 pub fn writeLines(writer: *Io.Writer, lines: std.ArrayList([]const u8)) !void {
+    if (lines.items.len == 0) return error.EmptyInput;
+
     // Write first line without \n newline char
     // The next lines start with \n newline char
     // This prevent getting empty line at the end of a file
