@@ -31,8 +31,10 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
         } else time_stamp_flag = false;
 
         try hash_set.put(clean_line, {});
-        try lines.insert(allocator, 0, clean_line);
+        try lines.append(allocator, clean_line);
+        // try lines.insert(allocator, 0, clean_line);
     }
+    std.mem.reverse([]const u8, lines.items);
     return lines;
 }
 
