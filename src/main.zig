@@ -76,7 +76,7 @@ fn printHelp() void {
         \\                         instead of overwriting the input file
         \\
         \\The default history file is determined by the HISTFILE environment variable,
-        \\or $HOME/history if HISTFILE is not set.
+        \\or $HOME/.bash_history if HISTFILE is not set.
         \\
         \\
     ;
@@ -91,7 +91,7 @@ fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocat
         return histFile;
     }
     if (env.get("HOME")) |home| {
-        return try Io.Dir.path.join(allocator, &[_][]const u8{ home, "history" });
+        return try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".bash_history" });
     }
     return error.HistoryFileNotFound;
 }
