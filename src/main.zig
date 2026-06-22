@@ -9,16 +9,20 @@ pub fn main(init: std.process.Init) !void {
     const arena: mem.Allocator = init.arena.allocator();
     const env = init.environ_map;
 
+    // preparing stdout-handler for printing to stdout
+    var stdout_writer = Io.File.stdout().writer(io, &.{});
+    const stdout = &stdout_writer.interface;
+
     const args = histclean.parseArgs(init.minimal.args, arena) catch |err| switch (err) {
         error.MissingPath => {
             printError();
-            printHelp();
+            try printHelp(stdout);
             std.process.exit(1);
         },
         else => std.process.exit(1),
     };
 
-    if (args.help) return printHelp(); // print help and exit
+    if (args.help) return try printHelp(stdout); // print help and exit
 
     const histfile_path = try getHistoryPath(args.input_path, env, arena);
 
@@ -57,7 +61,7 @@ fn printError() void {
     std.debug.print(msg, .{});
 }
 
-fn printHelp() void {
+fn printHelp(writer: *Io.Writer) !void {
     const msg =
         \\Usage: histclean [options]
         \\
@@ -80,7 +84,7 @@ fn printHelp() void {
         \\
         \\
     ;
-    std.debug.print("{s}", .{msg});
+    try writer.print(msg, .{});
 }
 
 fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
