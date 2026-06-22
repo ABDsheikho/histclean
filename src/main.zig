@@ -69,11 +69,11 @@ fn printHelp() void {
         \\  -d, --dry-run          Print the resulted output to stdout without
         \\                         modifying anything.
         \\  -b, --backup           Create a .backup copy of the history file
-        \\                         before modifying it
+        \\                         before modifying it.
         \\  -i, --input <FILE>     Read history from the specified file instead
-        \\                         of the default shell history file
+        \\                         of the default shell history file.
         \\  -o, --output <FILE>    Write resulted output to the specified file
-        \\                         instead of overwriting the input file
+        \\                         instead of overwriting the input file.
         \\
         \\The default history file is determined by the HISTFILE environment variable,
         \\or $HOME/.bash_history if HISTFILE is not set.

@@ -19,13 +19,37 @@ preserving the most recent unique occurrence of each command.
 	Show help message and exit.
 
 *-d*, *--dry-run*
-	Print deduplicated history to stdout without modifying the file.
+	Print the resulted output to stdout without modifying anything.
 
 *-b*, *--backup*
-	Create a .backup copy before modifying.
+	Create a .backup copy of the history file before modifying it.
 
-*-i*, *--input* <file>
-	Read from <file> instead of the default.
+*-i*, *--input* <FILE>
+	Read history from <file> instead of the default shell
+	history file.
+	*histclean* will try first to lookup history file
+	using $HISTFILE, then using $HOME/.bash_history. If no *history* file was
+	founded, a *HistoryFileNotFound* error will raise.
 
-*-o*, *--output* <file>
-	Write to <file> instead of overwriting the input.
+*-o*, *--output* <FILE>
+	Write resulted output to the specified <file> instead of overwriting
+	the input file.
+	Running the command multiple times to the same *output* will overwrite
+	it.
+
+# ENVIRONMENT
+
+*HISTFILE*
+	Path to the shell history file. If not set, defaults to
+	*$HOME*/.bash_history.
+
+*HOME*
+	Used to construct the default history path when *HISTFILE* is not
+	set.
+
+# LIMITATIONS
+	Currently, *histclean* only have implementation of *.bash_history* file
+	with their timestamps.++
+	*histclean* well work correctly with *EXTENDED_HISTORY* turned off.
+	Meaning it dose not have an implementation for parsing *.zsh_history*
+	file with their timestamps.

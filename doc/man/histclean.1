@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "HISTCLEAN" "1" "2026-06-21" "" "General Commands Manual"
+.TH "HISTCLEAN" "1" "2026-06-22" "" "General Commands Manual"
 .PP
 .SH NAME
 .PP
@@ -29,20 +29,51 @@ Show help message and exit.\&
 .RE
 \fB-d\fR, \fB--dry-run\fR
 .RS 4
-Print deduplicated history to stdout without modifying the file.\&
+Print the resulted output to stdout without modifying anything.\&
 .PP
 .RE
 \fB-b\fR, \fB--backup\fR
 .RS 4
-Create a .\&backup copy before modifying.\&
+Create a .\&backup copy of the history file before modifying it.\&
 .PP
 .RE
-\fB-i\fR, \fB--input\fR <file>
+\fB-i\fR, \fB--input\fR <FILE>
 .RS 4
-Read from <file> instead of the default.\&
+Read history from <file> instead of the default shell
+history file.\&
+\fBhistclean\fR will try first to lookup history file
+using $HISTFILE, then using $HOME/.\&bash_history.\& If no \fBhistory\fR file was
+founded, a \fBHistoryFileNotFound\fR error will raise.\&
 .PP
 .RE
-\fB-o\fR, \fB--output\fR <file>
+\fB-o\fR, \fB--output\fR <FILE>
 .RS 4
-Write to <file> instead of overwriting the input.\&
+Write resulted output to the specified <file> instead of overwriting
+the input file.\&
+Running the command multiple times to the same \fBoutput\fR will overwrite
+it.\&
+.PP
+.RE
+.SH ENVIRONMENT
+.PP
+\fBHISTFILE\fR
+.RS 4
+Path to the shell history file.\& If not set, defaults to
+\fB$HOME\fR/.\&bash_history.\&
+.PP
+.RE
+\fBHOME\fR
+.RS 4
+Used to construct the default history path when \fBHISTFILE\fR is not
+set.\&
+.PP
+.RE
+.SH LIMITATIONS
+.RS 4
+Currently, \fBhistclean\fR only have implementation of \fB.\&bash_histor\fR file
+with their timestamps.\&
+.br
+\fBhistclean\fR well work correctly with \fBEXTENDED_HISTORY\fR turned off.\&
+Meaning it dose not have an implementaion for parsing \fB.\&zsh_history\fR
+file with their timestamps.\&
 .RE
