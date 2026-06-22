@@ -116,7 +116,7 @@ pub fn build(b: *std.Build) void {
     }
 
     const man_step = b.step("man", "Generate man page");
-    const man_cmd = b.addSystemCommand(&[_][]const u8{"./scipts/man-gen.sh"});
+    const man_cmd = b.addSystemCommand(&[_][]const u8{"./scripts/man-gen.sh"});
     man_step.dependOn(&man_cmd.step);
 
     // Creates an executable that will run `test` blocks from the provided module.
