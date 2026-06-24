@@ -2,7 +2,7 @@ const std = @import("std");
 const Io = std.Io;
 const mem = std.mem;
 
-const histclean = @import("histclean");
+const histclean = @import("root.zig");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -13,18 +13,25 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &.{});
     const stdout = &stdout_writer.interface;
 
-    const args = histclean.parseArgs(init.minimal.args, arena) catch |err| switch (err) {
-        error.MissingPath => {
-            printError();
-            try printHelp(stdout);
-            std.process.exit(1);
-        },
-        else => std.process.exit(1),
+    const args = histclean.parseArgs(init.minimal.args, arena) catch |err| {
+        switch (err) {
+            histclean.err.Errors.MissingPath => histclean.err.printMissingPathError(),
+            histclean.err.Errors.InvalidArgument => histclean.err.printInvalidArgumentError(),
+            else => std.debug.print("Error: {s}\n\n", .{@errorName(err)}),
+        }
+        try printHelp(stdout);
+        std.process.exit(1);
     };
 
     if (args.help) return try printHelp(stdout); // print help and exit
 
-    const histfile_path = try getHistoryPath(args.input_path, env, arena);
+    const histfile_path = getHistoryPath(args.input_path, io, env, arena) catch |err| switch (err) {
+        histclean.err.Errors.HomeVariableNotSet => {
+            histclean.err.printHomeVariableNotSet();
+            std.process.exit(1);
+        },
+        else => return err,
+    };
 
     const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
     errdefer histfile.close(io);
@@ -46,19 +53,6 @@ pub fn main(init: std.process.Init) !void {
 
     var result_writer = output_file.writer(io, &.{});
     try histclean.writeLines(&result_writer.interface, new_lines);
-}
-
-fn printError() void {
-    const msg =
-        \\Error: can't parse file-path!
-        \\       Did you pass another flag before passing file-path?
-        \\           ex: histclean -i -d     -> error
-        \\       Or does the file-path start with a hyphen (-)?
-        \\           ex: histclean -i -/path/to/error
-        \\
-        \\
-    ;
-    std.debug.print(msg, .{});
 }
 
 fn printHelp(writer: *Io.Writer) !void {
@@ -117,5 +111,3 @@ fn backupFile(path: []const u8, io: Io) !void {
     const dest_path = try std.fmt.bufPrint(&buffer, "{s}.backup", .{path});
     try Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
 }
-
-test {}

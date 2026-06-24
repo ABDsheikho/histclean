@@ -1,6 +1,8 @@
 const std = @import("std");
 const mem = std.mem;
 
+const err = @import("./err.zig");
+
 pub const Args = struct {
     help: bool = false,
     dryRun: bool = false,
@@ -9,28 +11,56 @@ pub const Args = struct {
     output_path: ?[]const u8 = null,
 };
 
+const arg_to_enum_mapper = std.StaticStringMap(enum {
+    help,
+    dryRun,
+    backup,
+    input,
+    output,
+}).initComptime(.{
+    .{ "-h", .help },
+    .{ "--help", .help },
+    .{ "-d", .dryRun },
+    .{ "--dry-run", .dryRun },
+    .{ "-b", .backup },
+    .{ "--backup", .backup },
+    .{ "-i", .input },
+    .{ "--input", .input },
+    .{ "-o", .output },
+    .{ "--output", .output },
+});
+
 pub fn parseArgs(args: std.process.Args, allocator: mem.Allocator) !Args {
     var list: std.ArrayList([]const u8) = .empty;
     var iter = try args.iterateAllocator(allocator);
     defer iter.deinit();
+    // skip the first argument, which is usually the name of the bin
+    _ = iter.next();
     while (iter.next()) |arg| try list.append(allocator, arg);
     return parseArgsFromSlice(list.items);
 }
 
 pub fn parseArgsFromSlice(args_slice: []const []const u8) !Args {
     var arg_struct = Args{};
-    for (args_slice, 0..) |arg, i| {
-        if (mem.eql(u8, arg, "-h") or mem.eql(u8, arg, "--help")) arg_struct.help = true;
-        if (mem.eql(u8, arg, "-d") or mem.eql(u8, arg, "--dry-run")) arg_struct.dryRun = true;
-        if (mem.eql(u8, arg, "-b") or mem.eql(u8, arg, "--backup")) arg_struct.backup = true;
-        if (mem.eql(u8, arg, "-i") or mem.eql(u8, arg, "--input")) {
-            if (i + 1 >= args_slice.len or mem.startsWith(u8, args_slice[i + 1], "-")) return error.MissingPath;
-            arg_struct.input_path = args_slice[i + 1];
-        }
-        if (mem.eql(u8, arg, "-o") or mem.eql(u8, arg, "--output")) {
-            if (i + 1 >= args_slice.len or mem.startsWith(u8, args_slice[i + 1], "-")) return error.MissingPath;
-            arg_struct.output_path = args_slice[i + 1];
-        }
+    var i: usize = 0;
+    while (i < args_slice.len) : (i += 1) {
+        if (arg_to_enum_mapper.get(args_slice[i])) |val| {
+            switch (val) {
+                .help => arg_struct.help = true,
+                .dryRun => arg_struct.dryRun = true,
+                .backup => arg_struct.backup = true,
+                .input => {
+                    i += 1;
+                    if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.MissingPath;
+                    arg_struct.input_path = args_slice[i];
+                },
+                .output => {
+                    i += 1;
+                    if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.MissingPath;
+                    arg_struct.output_path = args_slice[i];
+                },
+            }
+        } else return err.Errors.InvalidArgument;
     }
     return arg_struct;
 }
@@ -66,9 +96,9 @@ test "parseArgs: input and output paths" {
 }
 
 test "parseArgs: missing path returns error" {
-    try std.testing.expectError(error.MissingPath, parseArgsFromSlice(&.{"-i"}));
-    try std.testing.expectError(error.MissingPath, parseArgsFromSlice(&.{"-o"}));
-    try std.testing.expectError(error.MissingPath, parseArgsFromSlice(&.{ "-i", "-d" }));
+    try std.testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{"-i"}));
+    try std.testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{"-o"}));
+    try std.testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{ "-i", "-d" }));
 }
 
 test "parseArgs: multiple flags" {
@@ -76,4 +106,9 @@ test "parseArgs: multiple flags" {
     try std.testing.expectEqual(true, args.dryRun);
     try std.testing.expectEqual(true, args.backup);
     try std.testing.expectEqualStrings("test/history", args.input_path.?);
+}
+
+test "parseArgs: invalid argument" {
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"-!x"}));
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"--x"}));
 }

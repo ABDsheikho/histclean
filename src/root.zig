@@ -7,6 +7,8 @@ pub const Args = _parse_args.Args;
 pub const parseArgs = _parse_args.parseArgs;
 pub const parseArgsFromSlice = _parse_args.parseArgsFromSlice;
 
+pub const err = @import("./err.zig");
+
 pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList([]const u8) {
     // define lines as array of strings
     var lines: std.ArrayList([]const u8) = .empty;
@@ -39,7 +41,7 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
 }
 
 pub fn writeLines(writer: *Io.Writer, lines: std.ArrayList([]const u8)) !void {
-    if (lines.items.len == 0) return error.EmptyInput;
+    if (lines.items.len == 0) return err.Errors.EmptyInput;
 
     // Write first line without \n newline char
     // The next lines start with \n newline char
