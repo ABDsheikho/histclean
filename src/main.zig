@@ -137,7 +137,7 @@ fn openOutputFile(args: histclean.Args, io: Io, defaultFile: *const Io.File) !Io
 }
 
 fn backupFile(path: []const u8, io: Io) !void {
-    var buffer: [Io.Dir.max_path_bytes]u8 = undefined;
+    var buffer: [Io.Dir.max_path_bytes - 7]u8 = undefined;
     const cwd = Io.Dir.cwd();
     const dest_path = try std.fmt.bufPrint(&buffer, "{s}.backup", .{path});
     try Io.Dir.copyFile(cwd, path, cwd, dest_path, io, .{ .replace = true });
