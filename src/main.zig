@@ -17,7 +17,10 @@ pub fn main(init: std.process.Init) !void {
         switch (err) {
             histclean.err.Errors.MissingPath => histclean.err.printMissingPathError(),
             histclean.err.Errors.InvalidArgument => histclean.err.printInvalidArgumentError(),
-            else => std.debug.print("Error: {s}\n\n", .{@errorName(err)}),
+            else => {
+                histclean.err.printDefaultErrTemp(err);
+                return err;
+            },
         }
         try printHelp(stdout);
         std.process.exit(1);
@@ -25,13 +28,28 @@ pub fn main(init: std.process.Init) !void {
 
     if (args.help) return try printHelp(stdout); // print help and exit
 
-    const histfile_path = getHistoryPath(args.input_path, io, env, arena) catch |err| switch (err) {
-        histclean.err.Errors.HomeVariableNotSet => {
-            histclean.err.printHomeVariableNotSet();
-            std.process.exit(1);
-        },
-        else => return err,
+    const histfile_path: []const u8 = args.input_path orelse anicipateHistFile(io, env, arena) catch |err| {
+        switch (err) {
+            histclean.err.Errors.CannotAnticipateHistoryFile => histclean.err.printCannotAnticipateHistoryFile(),
+            histclean.err.Errors.HomeVariableNotSet => histclean.err.printHomeVariableNotSet(),
+            else => {
+                histclean.err.printDefaultErrTemp(err);
+                return err;
+            },
+        }
+        try printHelp(stdout);
+        std.process.exit(1);
     };
+
+    if (pathExist(histfile_path, io)) |val| {
+        if (!val) {
+            histclean.err.printFileNotFound();
+            std.process.exit(1);
+        }
+    } else |err| {
+        histclean.err.printDefaultErrTemp(err);
+        return err;
+    }
 
     const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
     errdefer histfile.close(io);
@@ -81,17 +99,30 @@ fn printHelp(writer: *Io.Writer) !void {
     try writer.print(msg, .{});
 }
 
-fn getHistoryPath(file_path: ?[]const u8, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
-    if (file_path) |path| {
-        return path;
-    }
-    if (env.get("HISTFILE")) |histFile| {
-        return histFile;
-    }
-    if (env.get("HOME")) |home| {
-        return try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".bash_history" });
-    }
-    return error.HistoryFileNotFound;
+fn anicipateHistFile(io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
+    if (env.get("HISTFILE")) |histFile| return histFile;
+
+    const home = env.get("HOME") orelse return histclean.err.Errors.HomeVariableNotSet;
+
+    const bash_hist = try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".bash_history" });
+    if (pathExist(bash_hist, io)) |val| {
+        if (val) return bash_hist;
+    } else |err| return err;
+
+    const zsh_hist = try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".zsh_history" });
+    if (pathExist(zsh_hist, io)) |val| {
+        if (val) return zsh_hist;
+    } else |err| return err;
+
+    return histclean.err.Errors.CannotAnticipateHistoryFile;
+}
+
+fn pathExist(path: []const u8, io: Io) !bool {
+    Io.Dir.access(Io.Dir.cwd(), io, path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return false,
+        else => return err,
+    };
+    return true;
 }
 
 fn openOutputFile(args: histclean.Args, io: Io, defaultFile: *const Io.File) !Io.File {

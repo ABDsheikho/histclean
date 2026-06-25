@@ -4,8 +4,21 @@ pub const Errors = error{
     MissingPath,
     InvalidArgument,
     HomeVariableNotSet,
+    CannotAnticipateHistoryFile,
     EmptyInput,
 };
+
+pub fn printDefaultErrTemp(err: anyerror) void {
+    const tmp =
+        \\Error: {s}!
+        \\
+        \\       Please fill an issue with the error log or a screenshot to
+        \\           www.github.com/ABDsheikho/histclean
+        \\
+        \\
+    ;
+    std.debug.print(tmp, .{@errorName(err)});
+}
 
 pub fn printInvalidArgumentError() void {
     const msg =
@@ -34,9 +47,29 @@ pub fn printMissingPathError() void {
 pub fn printHomeVariableNotSet() void {
     const msg =
         \\Error: Neither $HISTFILE nor $HOME variables are set!
-        \\       Pass file-path using --input option.
+        \\       histclean can't anticipate history-file location.
+        \\       Try to pass the file-path using --input option.
         \\           ex: histclean -i <file-path>
         \\
+        \\
+    ;
+    std.debug.print(msg, .{});
+}
+
+pub fn printCannotAnticipateHistoryFile() void {
+    const msg =
+        \\Error: Can't anticipate history file location!
+        \\       Try to pass the file-path using --input option.
+        \\           ex: histclean -i <file-path>
+        \\
+    ;
+    std.debug.print(msg, .{});
+}
+
+pub fn printFileNotFound() void {
+    const msg =
+        \\Error: File not found!
+        \\       Make sure that the file-path do exist.
         \\
     ;
     std.debug.print(msg, .{});
