@@ -29,7 +29,7 @@ preserving the most recent unique occurrence of each command.
 	history file.
 	*histclean* will try first to lookup history file
 	using $HISTFILE, then using $HOME/.bash_history. If no *history* file was
-	founded, a *HistoryFileNotFound* error will raise.
+	found, a *HistoryFileNotFound* error will raise.
 
 *-o*, *--output* <FILE>
 	Write resulted output to the specified <file> instead of overwriting
@@ -50,6 +50,6 @@ preserving the most recent unique occurrence of each command.
 # LIMITATIONS
 	Currently, *histclean* only have implementation of *.bash_history* file
 	with their timestamps.++
-	*histclean* well work correctly with *EXTENDED_HISTORY* turned off.
-	Meaning it dose not have an implementation for parsing *.zsh_history*
+	*histclean* will work correctly with *EXTENDED_HISTORY* turned off.
+	Meaning it does not have an implementation for parsing *.zsh_history*
 	file with their timestamps.
