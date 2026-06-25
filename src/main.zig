@@ -28,8 +28,9 @@ pub fn main(init: std.process.Init) !void {
 
     if (args.help) return try printHelp(stdout); // print help and exit
 
-    const histfile_path: []const u8 = args.input_path orelse anicipateHistFile(io, env, arena) catch |err| {
+    run(args, io, env, arena) catch |err| {
         switch (err) {
+            error.FileNotFound => histclean.err.printFileNotFound(),
             histclean.err.Errors.CannotAnticipateHistoryFile => histclean.err.printCannotAnticipateHistoryFile(),
             histclean.err.Errors.HomeVariableNotSet => histclean.err.printHomeVariableNotSet(),
             else => {
@@ -40,16 +41,10 @@ pub fn main(init: std.process.Init) !void {
         try printHelp(stdout);
         std.process.exit(1);
     };
+}
 
-    if (pathExist(histfile_path, io)) |val| {
-        if (!val) {
-            histclean.err.printFileNotFound();
-            std.process.exit(1);
-        }
-    } else |err| {
-        histclean.err.printDefaultErrTemp(err);
-        return err;
-    }
+fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) !void {
+    const histfile_path: []const u8 = args.input_path orelse try anticipateHistFile(io, env, allocator);
 
     const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
     errdefer histfile.close(io);
@@ -59,12 +54,12 @@ pub fn main(init: std.process.Init) !void {
 
     // read file into memory
     const file_stat = try histfile.stat(io);
-    const content = try arena.alloc(u8, file_stat.size);
-    defer arena.free(content);
+    const content = try allocator.alloc(u8, file_stat.size);
+    defer allocator.free(content);
     _ = try histfile.readPositionalAll(io, content, 0);
 
-    var new_lines = try histclean.filterLines(content, arena);
-    defer new_lines.deinit(arena);
+    var new_lines = try histclean.filterLines(content, allocator);
+    defer new_lines.deinit(allocator);
 
     const output_file = try openOutputFile(args, io, &histfile);
     defer output_file.close(io);
@@ -99,7 +94,7 @@ fn printHelp(writer: *Io.Writer) !void {
     try writer.print(msg, .{});
 }
 
-fn anicipateHistFile(io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
+fn anticipateHistFile(io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
     if (env.get("HISTFILE")) |histFile| return histFile;
 
     const home = env.get("HOME") orelse return histclean.err.Errors.HomeVariableNotSet;
