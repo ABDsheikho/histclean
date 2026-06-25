@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 
 # Generate man-pages using scdoc command
 
@@ -9,8 +9,8 @@ echo -e "Generating man pages:"
 for file in "./doc/man/"*; do
     if [ "${file##*.}" == "scdoc" ]; then
         output="${file%.scdoc}"
-        scdoc <$file >$output
-        echo -e "  ${GREEN}=>${NC} $output"
+        scdoc <"$file" >"$output"
+        printf "  ${GREEN}=>${NC} $output\n"
     fi
 done
-echo -e "${GREEN}Done!${NC}"
+printf "${GREEN}Done!${NC}\n"
