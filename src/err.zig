@@ -12,7 +12,7 @@ pub fn printDefaultErrTemp(err: anyerror) void {
         \\Error: {s}!
         \\
         \\       Please fill an issue with the error log or a screenshot to
-        \\           www.github.com/ABDsheikho/histclean
+        \\           https://www.github.com/ABDsheikho/histclean
         \\
         \\
     ;
