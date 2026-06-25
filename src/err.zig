@@ -5,7 +5,6 @@ pub const Errors = error{
     InvalidArgument,
     HomeVariableNotSet,
     CannotAnticipateHistoryFile,
-    EmptyInput,
 };
 
 pub fn printDefaultErrTemp(err: anyerror) void {

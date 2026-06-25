@@ -41,16 +41,15 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
 }
 
 pub fn writeLines(writer: *Io.Writer, lines: []const []const u8) !void {
-    if (lines.len == 0) return err.Errors.EmptyInput;
-
-    // Write first line without \n newline char
-    // The next lines start with \n newline char
-    // This prevent getting empty line at the end of a file
-    try writer.print("{s}", .{lines[0]});
-    for (lines[1..]) |item| {
-        try writer.print("\n{s}", .{item});
+    if (lines.len > 0) {
+        // Write first line without \n newline char
+        // The next lines start with \n newline char
+        // This prevent getting empty line at the end of a file
+        try writer.print("{s}", .{lines[0]});
+        for (lines[1..]) |item| {
+            try writer.print("\n{s}", .{item});
+        }
     }
-
     try writer.flush();
 }
 
