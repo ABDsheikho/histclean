@@ -77,5 +77,6 @@
         // For example...
         "LICENSE",
         //"README.md",
+        "completions",
     },
 }
