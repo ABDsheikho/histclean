@@ -2,6 +2,8 @@ const std = @import("std");
 const mem = std.mem;
 const Io = std.Io;
 
+pub const version = "0.1.0";
+
 const _parse_args = @import("./parse_args.zig");
 pub const Args = _parse_args.Args;
 pub const parseArgs = _parse_args.parseArgs;

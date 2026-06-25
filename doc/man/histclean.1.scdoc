@@ -18,6 +18,9 @@ preserving the most recent unique occurrence of each command.
 *-h*, *--help*
 	Show help message and exit.
 
+*-v*, *--version*
+	Show version and exit.
+
 *-d*, *--dry-run*
 	Print the resulted output to stdout without modifying anything.
 

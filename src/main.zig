@@ -26,7 +26,8 @@ pub fn main(init: std.process.Init) !void {
         std.process.exit(1);
     };
 
-    if (args.help) return try printHelp(stdout); // print help and exit
+    if (args.help) return try printHelp(stdout);
+    if (args.version) return try printVersion(stdout);
 
     run(args, io, env, arena) catch |err| {
         switch (err) {
@@ -77,6 +78,7 @@ fn printHelp(writer: *Io.Writer) !void {
         \\
         \\Options:
         \\  -h, --help             Show this help message and exit
+        \\  -v, --version          Show version and exit
         \\  -d, --dry-run          Print the resulted output to stdout without
         \\                         modifying anything.
         \\  -b, --backup           Create a .backup copy of the history file
@@ -92,6 +94,10 @@ fn printHelp(writer: *Io.Writer) !void {
         \\
     ;
     try writer.print(msg, .{});
+}
+
+fn printVersion(writer: *Io.Writer) !void {
+    try writer.print("histclean {s}\n", .{histclean.version});
 }
 
 fn anticipateHistFile(io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {

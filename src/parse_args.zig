@@ -5,6 +5,7 @@ const err = @import("./err.zig");
 
 pub const Args = struct {
     help: bool = false,
+    version: bool = false,
     dryRun: bool = false,
     backup: bool = false,
     input_path: ?[]const u8 = null,
@@ -13,6 +14,7 @@ pub const Args = struct {
 
 const arg_to_enum_mapper = std.StaticStringMap(enum {
     help,
+    version,
     dryRun,
     backup,
     input,
@@ -20,6 +22,8 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
 }).initComptime(.{
     .{ "-h", .help },
     .{ "--help", .help },
+    .{ "-v", .version },
+    .{ "--version", .version },
     .{ "-d", .dryRun },
     .{ "--dry-run", .dryRun },
     .{ "-b", .backup },
@@ -47,6 +51,7 @@ pub fn parseArgsFromSlice(args_slice: []const []const u8) !Args {
         if (arg_to_enum_mapper.get(args_slice[i])) |val| {
             switch (val) {
                 .help => arg_struct.help = true,
+                .version => arg_struct.version = true,
                 .dryRun => arg_struct.dryRun = true,
                 .backup => arg_struct.backup = true,
                 .input => {
@@ -106,6 +111,11 @@ test "parseArgs: multiple flags" {
     try std.testing.expectEqual(true, args.dryRun);
     try std.testing.expectEqual(true, args.backup);
     try std.testing.expectEqualStrings("test/history", args.input_path.?);
+}
+
+test "parseArgs: version flag" {
+    try std.testing.expectEqual(true, (try parseArgsFromSlice(&.{"-v"})).version);
+    try std.testing.expectEqual(true, (try parseArgsFromSlice(&.{"--version"})).version);
 }
 
 test "parseArgs: invalid argument" {
