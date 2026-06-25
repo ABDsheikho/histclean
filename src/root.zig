@@ -40,14 +40,14 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
     return lines;
 }
 
-pub fn writeLines(writer: *Io.Writer, lines: std.ArrayList([]const u8)) !void {
-    if (lines.items.len == 0) return err.Errors.EmptyInput;
+pub fn writeLines(writer: *Io.Writer, lines: []const []const u8) !void {
+    if (lines.len == 0) return err.Errors.EmptyInput;
 
     // Write first line without \n newline char
     // The next lines start with \n newline char
     // This prevent getting empty line at the end of a file
-    try writer.print("{s}", .{lines.items[0]});
-    for (lines.items[1..]) |item| {
+    try writer.print("{s}", .{lines[0]});
+    for (lines[1..]) |item| {
         try writer.print("\n{s}", .{item});
     }
 
@@ -150,7 +150,7 @@ test "filterLines + writeLines: roundtrip via temp file" {
     }
 
     var tmp_writer = tmp_file.writer(std.testing.io, &.{});
-    try writeLines(&tmp_writer.interface, result);
+    try writeLines(&tmp_writer.interface, result.items);
 
     // Read back and verify
     const verify_file = try Io.Dir.openFile(dir, std.testing.io, tmp_path, .{ .mode = .read_only });

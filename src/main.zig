@@ -65,7 +65,7 @@ fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: m
     defer output_file.close(io);
 
     var result_writer = output_file.writer(io, &.{});
-    try histclean.writeLines(&result_writer.interface, new_lines);
+    try histclean.writeLines(&result_writer.interface, new_lines.items);
 }
 
 fn printHelp(writer: *Io.Writer) !void {
