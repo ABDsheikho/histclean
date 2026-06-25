@@ -151,6 +151,17 @@ pub fn build(b: *std.Build) void {
     const run_integration_tests = b.addRunArtifact(integration_tests);
     run_integration_tests.step.dependOn(b.getInstallStep());
 
+    // Fuzz tests via random inputs
+    const fuzz_mod = b.createModule(.{
+        .root_source_file = b.path("test/fuzz.zig"),
+        .target = target,
+        .imports = &.{
+            .{ .name = "histclean", .module = mod },
+        },
+    });
+    const fuzz_tests = b.addTest(.{ .root_module = fuzz_mod });
+    const run_fuzz_tests = b.addRunArtifact(fuzz_tests);
+
     // A top level step for running all tests. dependOn can be called multiple
     // times and since the two run steps do not depend on one another, this will
     // make the two of them run in parallel.
@@ -158,6 +169,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
     test_step.dependOn(&run_integration_tests.step);
+    test_step.dependOn(&run_fuzz_tests.step);
 
     // Just like flags, top level steps are also listed in the `--help` menu.
     //
