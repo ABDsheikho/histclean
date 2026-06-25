@@ -7,7 +7,7 @@ NC="\033[0m"
 
 echo -e "Generating man pages:"
 for file in "./doc/man/"*; do
-    if [ "${file##*.}" == "scdoc" ]; then
+    if [ "${file##*.}" = "scdoc" ]; then
         output="${file%.scdoc}"
         scdoc <"$file" >"$output"
         printf "  ${GREEN}=>${NC} $output\n"
