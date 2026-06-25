@@ -36,8 +36,11 @@ pub fn printMissingPathError() void {
         \\           ex: histclean -i
         \\       Or did you pass another flag before passing the file-path?
         \\           ex: histclean -i -d
-        \\       Or does the file-path start with a hyphen (-)?
-        \\           ex: histclean -i -/path/to/an/error
+        \\
+        \\       If your file-path start with a hyphen (-)
+        \\           ex: histclean -i --weird-file-name
+        \\       Then a good work around is to do:
+        \\           ex: histclean -i ./--weird-file-name
         \\
         \\
     ;
