@@ -45,24 +45,19 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) !void {
-    const histfile_path: []const u8 = args.input_path orelse try anticipateHistFile(io, env, allocator);
-
-    const histfile = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
-    errdefer histfile.close(io);
+    const histfile_path = args.input_path orelse try anticipateHistFile(io, env, allocator);
 
     // backup history file before proceeding
     if (args.backup and !args.dryRun) try backupFile(histfile_path, io);
 
     // read file into memory
-    const file_stat = try histfile.stat(io);
-    const content = try allocator.alloc(u8, file_stat.size);
+    const content = try readFileContent(histfile_path, io, allocator);
     defer allocator.free(content);
-    _ = try histfile.readPositionalAll(io, content, 0);
 
     var new_lines = try histclean.filterLines(content, allocator);
     defer new_lines.deinit(allocator);
 
-    const output_file = try openOutputFile(args, io, &histfile);
+    const output_file = try openOutputFile(args, io, histfile_path);
     defer output_file.close(io);
 
     var result_writer = output_file.writer(io, &.{});
@@ -126,15 +121,25 @@ fn pathExist(path: []const u8, io: Io) !bool {
     return true;
 }
 
-fn openOutputFile(args: histclean.Args, io: Io, defaultFile: *const Io.File) !Io.File {
+fn readFileContent(path: []const u8, io: Io, allocator: mem.Allocator) ![]u8 {
+    const file = try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_only });
+    defer file.close(io);
+    const stat = try file.stat(io);
+    const content = try allocator.alloc(u8, stat.size);
+    _ = try file.readPositionalAll(io, content, 0);
+    return content;
+}
+
+fn openOutputFile(args: histclean.Args, io: Io, histfile_path: []const u8) !Io.File {
     if (args.dryRun) {
         return Io.File.stdout();
     }
     if (args.output_path) |path| {
         return try Io.Dir.createFile(Io.Dir.cwd(), io, path, .{});
     }
-    try defaultFile.setLength(io, 0);
-    return defaultFile.*;
+    const file = try Io.Dir.openFile(Io.Dir.cwd(), io, histfile_path, .{ .mode = .read_write });
+    try file.setLength(io, 0);
+    return file;
 }
 
 fn backupFile(path: []const u8, io: Io) !void {
