@@ -5,7 +5,7 @@
 GREEN="\033[0;32m"
 NC="\033[0m"
 
-echo -e "Generating man pages:"
+echo "Generating man pages:"
 for file in "./doc/man/"*; do
     if [ "${file##*.}" = "scdoc" ]; then
         output="${file%.scdoc}"
