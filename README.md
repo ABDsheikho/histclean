@@ -1,7 +1,7 @@
 # histclean
 
-Clean duplicate shell commands from shell history files, preserving the most
-recent occurrence of each command.
+Clean duplicate shell commands from shell history files, while preserving
+the most recent occurrence of each command.
 
 ## TL;DR
 
@@ -35,18 +35,61 @@ zig build --prefix /usr/local
 histclean [options]
 ```
 
-The default history file is determined by the `HISTFILE` environment variable,
-or `$HOME/.bash_history` if `HISTFILE` is not set.
+When run without any options, `histclean` cleans the default history file on
+the system.
+
+`histclean` determines the default history file from the `HISTFILE` environment
+variable, falling back to `$HOME/.bash_history` or `$HOME/.zsh_history` if
+`HISTFILE` is not set.
 
 | Option | Description |
 |---|---|
 | `-h`, `--help` | Show help message and exit |
 | `-v`, `--version` | Show version and exit |
-| `-d`, `--dry-run` | Print cleaned output to stdout, don't modify anything |
+| `-d`, `--dry-run` | Print the resulted output to stdout without modifying anything |
 | `-b`, `--backup` | Create a `.backup` copy before modifying the file |
 | `-i`, `--input <FILE>` | Read history from the specified file |
-| `-o`, `--output <FILE>` | Write cleaned output to the specified file |
+| `-o`, `--output <FILE>` | Write resulted output to the specified file |
 | `-c`, `completion <shell>` | Generate completion script for the specified shell (bash, zsh) |
+
+## Examples
+
+```shell
+# Deduplicate the default history file in-place
+histclean
+
+# Preview what would be removed
+histclean --dry-run
+
+# Clean a specific history file with a backup
+histclean --input ~/.zsh_history --backup
+
+# Write cleaned output to a new file
+histclean --input ~/.bash_history --output ~/cleaned_history
+```
+
+## How It Works
+
+`histclean` scans the history file backwards, keeping only the most recent
+occurrence of each unique command line. Timestamp lines (prefixed with `#`)
+are preserved for their associated commands, and orphaned consecutive
+timestamps are collapsed.
+
+## Build Options
+
+```shell
+zig build                 # Debug build
+zig build test            # Run unit and integration tests
+zig build man             # Generate man page (requires scdoc)
+```
+
+Optimization modes:
+
+```shell
+zig build -Doptimize=ReleaseSafe
+zig build -Doptimize=ReleaseFast
+zig build -Doptimize=ReleaseSmall
+```
 
 ## Shell Completions
 
@@ -66,45 +109,6 @@ providing the associated shell (`bash`, `zsh`).
 ```shell
 eval "$(histclean --completion zsh)"
 ```
-
-## Examples
-
-```shell
-# Deduplicate the default history file in-place
-histclean
-
-# Preview what would be removed
-histclean --dry-run
-
-# Clean a specific history file with a backup
-histclean --input ~/.zsh_history --backup
-
-# Write cleaned output to a new file
-histclean --input ~/.bash_history --output ~/cleaned_history
-```
-
-## Build Options
-
-```shell
-zig build                 # Debug build
-zig build test            # Run unit and integration tests
-zig build man             # Generate man page (requires scdoc)
-```
-
-Optimization modes:
-
-```shell
-zig build -Doptimize=ReleaseSafe
-zig build -Doptimize=ReleaseFast
-zig build -Doptimize=ReleaseSmall
-```
-
-## How It Works
-
-histclean scans the history file backwards, keeping only the most recent
-occurrence of each unique command line. Timestamp lines (prefixed with `#`)
-are preserved for their associated commands, and orphaned consecutive
-timestamps are collapsed.
 
 ## Limitations
 
