@@ -5,7 +5,9 @@ the most recent occurrence of each command.
 
 ## TL;DR
 
-Clone the repo, then build it with the Zig compiler (zig >= 0.16)
+You can either download the latest binary from [releases](https://github.com/ABDsheikho/histclean/releases) page.
+
+Or clone the repo, then build it with the Zig compiler (zig >= 0.16)
 
 ```shell
 git clone https://github.com/ABDsheikho/histclean.git
@@ -28,6 +30,19 @@ Or with a custom prefix:
 ```shell
 zig build --prefix /usr/local
 ```
+
+### Download
+
+If you downloaded the latest binary from [release](https://github.com/ABDsheikho/histclean/releases),
+then you probably need to do the following commands:
+
+```shell
+mv histclean-v* histclean               # Clean the name
+chmod +x histclean                      # Make it an executable
+eval "$(histclean --completion bash)"   # Or zsh
+```
+
+Then you need to move the binary to your $PATH.
 
 ## Usage
 
