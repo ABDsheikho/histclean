@@ -8,7 +8,7 @@ the most recent occurrence of each command.
 Clone the repo, then build it with the Zig compiler (zig >= 0.16)
 
 ```shell
-git clone githu
+git clone https://github.com/ABDsheikho/histclean.git
 cd histclean
 zig build install
 ```
@@ -50,7 +50,7 @@ variable, falling back to `$HOME/.bash_history` or `$HOME/.zsh_history` if
 | `-b`, `--backup` | Create a `.backup` copy before modifying the file |
 | `-i`, `--input <FILE>` | Read history from the specified file |
 | `-o`, `--output <FILE>` | Write resulted output to the specified file |
-| `-c`, `completion <shell>` | Generate completion script for the specified shell (bash, zsh) |
+| `-c`, `--completion <SHELL>` | Generate completion script for the specified shell (bash, zsh) |
 
 ## Examples
 
