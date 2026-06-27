@@ -60,14 +60,14 @@ fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: m
     const content = try readFileContent(histfile_path, io, allocator);
     defer allocator.free(content);
 
-    var new_lines = try histclean.filterLines(content, allocator);
-    defer new_lines.deinit(allocator);
+    const new_lines = try histclean.filterLines(content, allocator);
+    defer allocator.free(new_lines);
 
     const output_file = try openOutputFile(args, io, histfile_path);
     defer output_file.close(io);
 
     var result_writer = output_file.writer(io, &.{});
-    try histclean.writeLines(&result_writer.interface, new_lines.items);
+    try histclean.writeLines(&result_writer.interface, new_lines);
 }
 
 fn printHelp(writer: *Io.Writer) !void {

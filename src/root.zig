@@ -12,7 +12,7 @@ pub const parseArgsFromSlice = _parse_args.parseArgsFromSlice;
 
 pub const err = @import("./err.zig");
 
-pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList([]const u8) {
+pub fn filterLines(content: []const u8, allocator: mem.Allocator) ![]const []const u8 {
     // define lines as array of strings
     var lines: std.ArrayList([]const u8) = .empty;
 
@@ -39,7 +39,7 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) !std.ArrayList
         try lines.append(allocator, clean_line);
     }
     std.mem.reverse([]const u8, lines.items);
-    return lines;
+    return lines.toOwnedSlice(allocator);
 }
 
 pub fn writeLines(writer: *Io.Writer, lines: []const []const u8) !void {
@@ -65,14 +65,14 @@ test "filterLines: basic dedup removes duplicates" {
         \\echo bye
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 4), result.items.len);
-    try testing.expectEqualStrings("#456", result.items[0]);
-    try testing.expectEqualStrings("echo hi", result.items[1]);
-    try testing.expectEqualStrings("#789", result.items[2]);
-    try testing.expectEqualStrings("echo bye", result.items[3]);
+    try testing.expectEqual(@as(usize, 4), result.len);
+    try testing.expectEqualStrings("#456", result[0]);
+    try testing.expectEqualStrings("echo hi", result[1]);
+    try testing.expectEqualStrings("#789", result[2]);
+    try testing.expectEqualStrings("echo bye", result[3]);
 }
 
 test "filterLines: consecutive timestamps dedup to one" {
@@ -84,22 +84,22 @@ test "filterLines: consecutive timestamps dedup to one" {
         \\echo bye
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 4), result.items.len);
-    try testing.expectEqualStrings("#123", result.items[0]);
-    try testing.expectEqualStrings("echo hi", result.items[1]);
-    try testing.expectEqualStrings("#789", result.items[2]);
-    try testing.expectEqualStrings("echo bye", result.items[3]);
+    try testing.expectEqual(@as(usize, 4), result.len);
+    try testing.expectEqualStrings("#123", result[0]);
+    try testing.expectEqualStrings("echo hi", result[1]);
+    try testing.expectEqualStrings("#789", result[2]);
+    try testing.expectEqualStrings("echo bye", result[3]);
 }
 
 test "filterLines: single line" {
-    var result = try filterLines("echo hi", testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines("echo hi", testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 1), result.items.len);
-    try testing.expectEqualStrings("echo hi", result.items[0]);
+    try testing.expectEqual(@as(usize, 1), result.len);
+    try testing.expectEqualStrings("echo hi", result[0]);
 }
 
 test "filterLines: all duplicates" {
@@ -109,10 +109,10 @@ test "filterLines: all duplicates" {
         \\echo hi
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 1), result.items.len);
+    try testing.expectEqual(@as(usize, 1), result.len);
 }
 
 test "filterLines: lines with trailing spaces are trimmed" {
@@ -121,18 +121,18 @@ test "filterLines: lines with trailing spaces are trimmed" {
         \\echo hi
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 1), result.items.len);
+    try testing.expectEqual(@as(usize, 1), result.len);
 }
 
 test "filterLines: empty input returns one empty line" {
-    var result = try filterLines("", testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines("", testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 1), result.items.len);
-    try testing.expectEqualStrings("", result.items[0]);
+    try testing.expectEqual(@as(usize, 1), result.len);
+    try testing.expectEqualStrings("", result[0]);
 }
 
 test "filterLines: no duplicates preserves all lines" {
@@ -142,13 +142,13 @@ test "filterLines: no duplicates preserves all lines" {
         \\echo third
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 3), result.items.len);
-    try testing.expectEqualStrings("echo first", result.items[0]);
-    try testing.expectEqualStrings("echo second", result.items[1]);
-    try testing.expectEqualStrings("echo third", result.items[2]);
+    try testing.expectEqual(@as(usize, 3), result.len);
+    try testing.expectEqualStrings("echo first", result[0]);
+    try testing.expectEqualStrings("echo second", result[1]);
+    try testing.expectEqualStrings("echo third", result[2]);
 }
 
 test "filterLines: only timestamps dedup to last timestamp" {
@@ -158,24 +158,24 @@ test "filterLines: only timestamps dedup to last timestamp" {
         \\#789
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 1), result.items.len);
-    try testing.expectEqualStrings("#789", result.items[0]);
+    try testing.expectEqual(@as(usize, 1), result.len);
+    try testing.expectEqualStrings("#789", result[0]);
 }
 
 test "filterLines: Windows-style CRLF line endings" {
     const input = "echo first\r\necho second\r\necho first\r\n";
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
     // trailing \r\n produces an empty string (sorted last after reverse)
-    try testing.expectEqual(@as(usize, 3), result.items.len);
-    try testing.expectEqualStrings("echo second", result.items[0]);
-    try testing.expectEqualStrings("echo first", result.items[1]);
-    try testing.expectEqualStrings("", result.items[2]);
+    try testing.expectEqual(@as(usize, 3), result.len);
+    try testing.expectEqualStrings("echo second", result[0]);
+    try testing.expectEqualStrings("echo first", result[1]);
+    try testing.expectEqualStrings("", result[2]);
 }
 
 test "filterLines + writeLines: roundtrip via temp file" {
@@ -188,10 +188,10 @@ test "filterLines + writeLines: roundtrip via temp file" {
         \\echo bye
     ;
 
-    var result = try filterLines(input, testing.allocator);
-    defer result.deinit(testing.allocator);
+    const result = try filterLines(input, testing.allocator);
+    defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 4), result.items.len);
+    try testing.expectEqual(@as(usize, 4), result.len);
 
     const dir = Io.Dir.cwd();
     const tmp_path = "test-histclean-tmp.out";
@@ -202,7 +202,7 @@ test "filterLines + writeLines: roundtrip via temp file" {
     }
 
     var tmp_writer = tmp_file.writer(testing.io, &.{});
-    try writeLines(&tmp_writer.interface, result.items);
+    try writeLines(&tmp_writer.interface, result);
 
     // Read back and verify
     const verify_file = try Io.Dir.openFile(dir, testing.io, tmp_path, .{ .mode = .read_only });

@@ -14,11 +14,11 @@ test "fuzz: filterLines with arbitrary bytes" {
 
         for (input) |*byte| byte.* = random.int(u8);
 
-        var result = histclean.filterLines(input, testing.allocator) catch continue;
-        defer result.deinit(testing.allocator);
+        const result = histclean.filterLines(input, testing.allocator) catch continue;
+        defer testing.allocator.free(result);
 
         // Every returned slice must point into the input
-        for (result.items) |item| {
+        for (result) |item| {
             const s = @intFromPtr(item.ptr);
             const start = @intFromPtr(input.ptr);
             try testing.expect(s >= start and s + item.len <= start + input.len);
@@ -38,13 +38,13 @@ test "fuzz: filterLines results are deterministic" {
 
         for (input) |*byte| byte.* = random.int(u8);
 
-        var r1 = try histclean.filterLines(input, testing.allocator);
-        defer r1.deinit(testing.allocator);
+        const r1 = try histclean.filterLines(input, testing.allocator);
+        defer testing.allocator.free(r1);
 
-        var r2 = try histclean.filterLines(input, testing.allocator);
-        defer r2.deinit(testing.allocator);
+        const r2 = try histclean.filterLines(input, testing.allocator);
+        defer testing.allocator.free(r2);
 
-        try testing.expectEqual(r1.items.len, r2.items.len);
+        try testing.expectEqual(r1.len, r2.len);
     }
 }
 
@@ -61,13 +61,13 @@ test "fuzz: filterLines with shell-like data has no duplicates" {
 
         for (input) |*byte| byte.* = chars[random.uintLessThan(usize, chars.len)];
 
-        var result = histclean.filterLines(input, testing.allocator) catch continue;
-        defer result.deinit(testing.allocator);
+        const result = histclean.filterLines(input, testing.allocator) catch continue;
+        defer testing.allocator.free(result);
 
-        for (result.items, 0..) |a, i_| {
+        for (result, 0..) |a, i_| {
             var j: usize = i_ + 1;
-            while (j < result.items.len) : (j += 1) {
-                const dup = std.mem.eql(u8, a, result.items[j]);
+            while (j < result.len) : (j += 1) {
+                const dup = std.mem.eql(u8, a, result[j]);
                 // Empty lines (from consecutive newlines) are allowed dupes
                 if (dup and a.len != 0) {
                     try testing.expect(false);
