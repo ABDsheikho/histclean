@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-linux
+            os: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - run: zig build -Doptimize=ReleaseSafe -Dtarget=${{ matrix.target }}
+
+      - name: Stage release artifact
+        run: |
+          tag="${{ github.ref_name }}"
+          name="histclean-${tag}-${{ matrix.target }}"
+          mkdir -p "releases/${{ matrix.target }}"
+          cp zig-out/bin/histclean "releases/${{ matrix.target }}/${name}"
+          chmod +x "releases/${{ matrix.target }}/${name}"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: releases/${{ matrix.target }}/histclean-*
