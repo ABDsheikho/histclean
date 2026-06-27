@@ -3,9 +3,21 @@
 Clean duplicate shell commands from shell history files, preserving the most
 recent occurrence of each command.
 
-## Installation
+## TL;DR
 
-Requires **Zig 0.16.0** or later.
+Clone the repo, then build it with the Zig compiler (zig >= 0.16)
+
+```shell
+git clone githu
+cd histclean
+zig build install
+```
+
+## Requirements
+
+[Zig compiler](https://ziglang.org/download/) >= 0.16
+
+## Installation
 
 ```shell
 zig build install
@@ -93,6 +105,13 @@ histclean scans the history file backwards, keeping only the most recent
 occurrence of each unique command line. Timestamp lines (prefixed with `#`)
 are preserved for their associated commands, and orphaned consecutive
 timestamps are collapsed.
+
+## Limitations
+
+Currently, histclean only implements the `.bash_history` file format with
+its timestamps. It works correctly with `EXTENDED_HISTORY` turned off.
+There is no implementation for parsing `.zsh_history` files with their
+timestamps.
 
 ## License
 
