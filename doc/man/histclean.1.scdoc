@@ -40,6 +40,10 @@ preserving the most recent unique occurrence of each command.
 	Running the command multiple times to the same *output* will overwrite
 	it.
 
+*-c*, *--completion* <SHELL>
+	Generate the autocompletion script by provieding the specified shell.
+	*<SHELL>* can be *bash*, *zsh*.
+
 # ENVIRONMENT
 
 *HISTFILE*

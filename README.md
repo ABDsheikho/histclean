@@ -34,10 +34,11 @@ or `$HOME/.bash_history` if `HISTFILE` is not set.
 | `-b`, `--backup` | Create a `.backup` copy before modifying the file |
 | `-i`, `--input <FILE>` | Read history from the specified file |
 | `-o`, `--output <FILE>` | Write cleaned output to the specified file |
+| `-c`, `completion <shell>` | Generate completion script for the specified shell (bash, zsh) |
 
 ## Shell Completions
 
-Bash completion is available in `completions/histclean.bash`.
+Shell completion is available in `completions/` directory.
 
 ```shell
 # Source it (per session)
@@ -45,6 +46,13 @@ source completions/histclean.bash
 
 # Or install system-wide (requires bash-completion v2.x)
 sudo cp completions/histclean.bash /usr/share/bash-completion/completions/histclean
+```
+
+You can also generate the completion script using the `--completion` option by
+providing the associated shell (`bash`, `zsh`).
+
+```shell
+eval "$(histclean --completion zsh)"
 ```
 
 ## Examples

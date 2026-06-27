@@ -9,9 +9,13 @@ _histclean() {
             COMPREPLY=($(compgen -f -- "${cur}"))
             return 0
             ;;
+        -c|--completion)
+            COMPREPLY=($(compgen -W "bash zsh" -- "${cur}"))
+            return 0
+            ;;
     esac
 
-    local opts="-h --help -d --dry-run -b --backup -i --input -o --output"
+    local opts="-h --help -v --version -d --dry-run -b --backup -c --completion -i --input -o --output"
     COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
     return 0
 }

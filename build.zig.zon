@@ -77,7 +77,7 @@
         "LICENSE",
         "README.md",
         "test",
-        "completions",
+        "completions/",
         "CHANGELOG.md",
     },
 }

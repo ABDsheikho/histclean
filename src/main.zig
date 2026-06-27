@@ -3,6 +3,7 @@ const Io = std.Io;
 const mem = std.mem;
 
 const histclean = @import("root.zig");
+const completion_data = @import("completion_data");
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
@@ -28,6 +29,11 @@ pub fn main(init: std.process.Init) !void {
 
     if (args.help) return try printHelp(stdout);
     if (args.version) return try printVersion(stdout);
+
+    if (args.completion) |cmp| switch (cmp) {
+        .bash => return try stdout.print("{s}", .{completion_data.bash}),
+        .zsh => return try stdout.print("{s}", .{completion_data.zsh}),
+    };
 
     run(args, io, env, arena) catch |err| {
         switch (err) {
@@ -82,6 +88,8 @@ fn printHelp(writer: *Io.Writer) !void {
         \\                         of the default shell history file.
         \\  -o, --output <FILE>    Write resulted output to the specified file
         \\                         instead of overwriting the input file.
+        \\  -c, --completion <shell>
+        \\        Generate completion script for the specified shell (bash, zsh).
         \\
         \\The default history file is determined by the HISTFILE environment variable,
         \\or $HOME/.bash_history if HISTFILE is not set.

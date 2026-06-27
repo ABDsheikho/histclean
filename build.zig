@@ -89,6 +89,13 @@ pub fn build(b: *std.Build) void {
     // by passing `--prefix` or `-p`.
     b.installArtifact(exe);
 
+    // Create a module from the completion.zig which re-exports
+    // the embedded files in completions/ directory via @embedFile.
+    const completion_mod = b.createModule(.{
+        .root_source_file = b.path("completions/completion.zig"),
+    });
+    exe.root_module.addImport("completion_data", completion_mod);
+
     // This creates a top level step. Top level steps have a name and can be
     // invoked by name when running `zig build` (e.g. `zig build run`).
     // This will evaluate the `run` step rather than the default step.

@@ -10,6 +10,12 @@ pub const Args = struct {
     backup: bool = false,
     input_path: ?[]const u8 = null,
     output_path: ?[]const u8 = null,
+    completion: ?Completion = null,
+};
+
+pub const Completion = enum {
+    bash,
+    zsh,
 };
 
 const arg_to_enum_mapper = std.StaticStringMap(enum {
@@ -19,6 +25,7 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     backup,
     input,
     output,
+    completion,
 }).initComptime(.{
     .{ "-h", .help },
     .{ "--help", .help },
@@ -32,6 +39,8 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     .{ "--input", .input },
     .{ "-o", .output },
     .{ "--output", .output },
+    .{ "-c", .completion },
+    .{ "--completion", .completion },
 });
 
 pub fn parseArgs(args: std.process.Args, allocator: mem.Allocator) !Args {
@@ -63,6 +72,20 @@ pub fn parseArgsFromSlice(args_slice: []const []const u8) !Args {
                     i += 1;
                     if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.MissingPath;
                     arg_struct.output_path = args_slice[i];
+                },
+                .completion => {
+                    i += 1;
+                    if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.InvalidArgument;
+                    const v = args_slice[i];
+                    if (mem.eql(u8, v, "bash")) {
+                        arg_struct.completion = .bash;
+                        continue;
+                    }
+                    if (mem.eql(u8, v, "zsh")) {
+                        arg_struct.completion = .zsh;
+                        continue;
+                    }
+                    return err.Errors.InvalidArgument;
                 },
             }
         } else return err.Errors.InvalidArgument;
