@@ -114,6 +114,78 @@ test "in-place modification" {
     try testing.expectEqualStrings(expected, actual);
 }
 
+test "completion bash prints bash completion script" {
+    const result = try runBin(&.{ bin_path, "-c", "bash" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 0), result.term.exited);
+    try testing.expect(std.mem.startsWith(u8, result.stdout, "_histclean()"));
+    try testing.expect(std.mem.containsAtLeast(u8, result.stdout, 1, "bash"));
+}
+
+test "completion zsh prints zsh completion script" {
+    const result = try runBin(&.{ bin_path, "-c", "zsh" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 0), result.term.exited);
+    try testing.expect(std.mem.startsWith(u8, result.stdout, "#compdef histclean"));
+    try testing.expect(std.mem.containsAtLeast(u8, result.stdout, 1, "_arguments"));
+}
+
+test "version flag prints version" {
+    const result = try runBin(&.{ bin_path, "-v" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 0), result.term.exited);
+    try testing.expect(std.mem.startsWith(u8, result.stdout, "histclean "));
+}
+
+test "help flag prints usage" {
+    const result = try runBin(&.{ bin_path, "-h" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 0), result.term.exited);
+    try testing.expect(std.mem.startsWith(u8, result.stdout, "Usage:"));
+}
+
+test "missing input value exits with error" {
+    const result = try runBin(&.{ bin_path, "-i" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 1), result.term.exited);
+    try testing.expect(std.mem.containsAtLeast(u8, result.stderr, 1, "file-path"));
+}
+
+test "invalid flag exits with error" {
+    const result = try runBin(&.{ bin_path, "--nonexistent" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 1), result.term.exited);
+    try testing.expect(std.mem.containsAtLeast(u8, result.stderr, 1, "Invalid"));
+}
+
+test "completion with invalid shell exits with error" {
+    const result = try runBin(&.{ bin_path, "-c", "fish" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 1), result.term.exited);
+}
+
+test "missing input file exits with error" {
+    const result = try runBin(&.{ bin_path, "-i", "test/nonexistent" });
+    defer testing.allocator.free(result.stdout);
+    defer testing.allocator.free(result.stderr);
+
+    try testing.expectEqual(@as(u32, 1), result.term.exited);
+}
+
 fn readFile(path: []const u8) ![]u8 {
     const file = try Io.Dir.openFile(Io.Dir.cwd(), io, path, .{ .mode = .read_only });
     defer file.close(io);

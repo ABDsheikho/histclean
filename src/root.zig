@@ -126,6 +126,57 @@ test "filterLines: lines with trailing spaces are trimmed" {
     try std.testing.expectEqual(@as(usize, 1), result.items.len);
 }
 
+test "filterLines: empty input returns one empty line" {
+    var result = try filterLines("", std.testing.allocator);
+    defer result.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 1), result.items.len);
+    try std.testing.expectEqualStrings("", result.items[0]);
+}
+
+test "filterLines: no duplicates preserves all lines" {
+    const input =
+        \\echo first
+        \\echo second
+        \\echo third
+    ;
+
+    var result = try filterLines(input, std.testing.allocator);
+    defer result.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), result.items.len);
+    try std.testing.expectEqualStrings("echo first", result.items[0]);
+    try std.testing.expectEqualStrings("echo second", result.items[1]);
+    try std.testing.expectEqualStrings("echo third", result.items[2]);
+}
+
+test "filterLines: only timestamps dedup to last timestamp" {
+    const input =
+        \\#123
+        \\#456
+        \\#789
+    ;
+
+    var result = try filterLines(input, std.testing.allocator);
+    defer result.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 1), result.items.len);
+    try std.testing.expectEqualStrings("#789", result.items[0]);
+}
+
+test "filterLines: Windows-style CRLF line endings" {
+    const input = "echo first\r\necho second\r\necho first\r\n";
+
+    var result = try filterLines(input, std.testing.allocator);
+    defer result.deinit(std.testing.allocator);
+
+    // trailing \r\n produces an empty string (sorted last after reverse)
+    try std.testing.expectEqual(@as(usize, 3), result.items.len);
+    try std.testing.expectEqualStrings("echo second", result.items[0]);
+    try std.testing.expectEqualStrings("echo first", result.items[1]);
+    try std.testing.expectEqualStrings("", result.items[2]);
+}
+
 test "filterLines + writeLines: roundtrip via temp file" {
     const input =
         \\#123

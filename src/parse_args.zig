@@ -141,6 +141,29 @@ test "parseArgs: version flag" {
     try std.testing.expectEqual(true, (try parseArgsFromSlice(&.{"--version"})).version);
 }
 
+test "parseArgs: completion flag bash" {
+    try std.testing.expect(try parseArgsFromSlice(&.{ "-c", "bash" }).completion == .bash);
+    try std.testing.expect(try parseArgsFromSlice(&.{ "--completion", "bash" }).completion == .bash);
+}
+
+test "parseArgs: completion flag zsh" {
+    try std.testing.expect(try parseArgsFromSlice(&.{ "-c", "zsh" }).completion == .zsh);
+    try std.testing.expect(try parseArgsFromSlice(&.{ "--completion", "zsh" }).completion == .zsh);
+}
+
+test "parseArgs: completion missing value returns error" {
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"-c"}));
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"--completion"}));
+}
+
+test "parseArgs: completion with flag instead of value returns error" {
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{ "-c", "-d" }));
+}
+
+test "parseArgs: completion with invalid shell returns error" {
+    try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{ "-c", "powershell" }));
+}
+
 test "parseArgs: invalid argument" {
     try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"-!x"}));
     try std.testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"--x"}));
