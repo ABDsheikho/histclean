@@ -3,7 +3,7 @@ const Io = std.Io;
 const mem = std.mem;
 const testing = std.testing;
 
-pub const version = "0.1.0";
+pub const version = "0.2.0";
 
 const _parse_args = @import("./parse_args.zig");
 pub const Args = _parse_args.Args;
