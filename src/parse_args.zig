@@ -9,6 +9,7 @@ pub const Args = struct {
     version: bool = false,
     dryRun: bool = false,
     backup: bool = false,
+    which_file: bool = false,
     input_path: ?[]const u8 = null,
     output_path: ?[]const u8 = null,
     completion: ?Completion = null,
@@ -24,6 +25,7 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     version,
     dryRun,
     backup,
+    which_file,
     input,
     output,
     completion,
@@ -36,6 +38,8 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     .{ "--dry-run", .dryRun },
     .{ "-b", .backup },
     .{ "--backup", .backup },
+    .{ "-w", .which_file },
+    .{ "--which", .which_file },
     .{ "-i", .input },
     .{ "--input", .input },
     .{ "-o", .output },
@@ -64,6 +68,7 @@ pub fn parseArgsFromSlice(args_slice: []const []const u8) !Args {
                 .version => arg_struct.version = true,
                 .dryRun => arg_struct.dryRun = true,
                 .backup => arg_struct.backup = true,
+                .which_file => arg_struct.which_file = true,
                 .input => {
                     i += 1;
                     if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.MissingPath;
@@ -116,6 +121,11 @@ test "parseArgs: dry-run flag" {
 test "parseArgs: backup flag" {
     try testing.expectEqual(true, (try parseArgsFromSlice(&.{"-b"})).backup);
     try testing.expectEqual(true, (try parseArgsFromSlice(&.{"--backup"})).backup);
+}
+
+test "parseArgs: which-file flag" {
+    try testing.expectEqual(true, (try parseArgsFromSlice(&.{"-w"})).which_file);
+    try testing.expectEqual(true, (try parseArgsFromSlice(&.{"--which-file"})).which_file);
 }
 
 test "parseArgs: input and output paths" {

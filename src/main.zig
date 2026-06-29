@@ -53,6 +53,8 @@ pub fn main(init: std.process.Init) !void {
 fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) !void {
     const histfile_path = args.input_path orelse try anticipateHistFile(io, env, allocator);
 
+    if (args.which_file) return try printToStdout(io, "{s}\n", .{histfile_path});
+
     // backup history file before proceeding
     if (args.backup and !args.dryRun) try backupFile(histfile_path, io);
 
@@ -70,6 +72,12 @@ fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: m
     try histclean.writeLines(&result_writer.interface, new_lines);
 }
 
+fn printToStdout(io: Io, comptime fmt: []const u8, args: anytype) !void {
+    var stdout_writer = Io.File.stdout().writer(io, &.{});
+    const stdout = &stdout_writer.interface;
+    try stdout.print(fmt, args);
+}
+
 fn printHelp(writer: *Io.Writer) !void {
     const msg =
         \\Usage: histclean [options]
@@ -84,6 +92,7 @@ fn printHelp(writer: *Io.Writer) !void {
         \\                         modifying anything.
         \\  -b, --backup           Create a .backup copy of the history file
         \\                         before modifying it.
+        \\  -w, --which-file       Print the path to the detected history file and exit.
         \\  -i, --input <FILE>     Read history from the specified file instead
         \\                         of the default shell history file.
         \\  -o, --output <FILE>    Write resulted output to the specified file

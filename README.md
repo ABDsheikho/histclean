@@ -92,6 +92,7 @@ variable, falling back to `$HOME/.bash_history` or `$HOME/.zsh_history` if
 | `-v`, `--version` | Show version and exit |
 | `-d`, `--dry-run` | Print the resulted output to stdout without modifying anything |
 | `-b`, `--backup` | Create a `.backup` copy before modifying the file |
+| `-w`, `--which-file` | Print the path to the detected history file and exit |
 | `-i`, `--input <FILE>` | Read history from the specified file |
 | `-o`, `--output <FILE>` | Write resulted output to the specified file |
 | `-c`, `--completion <SHELL>` | Generate completion script for the specified shell (bash, zsh) |

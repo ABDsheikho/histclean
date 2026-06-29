@@ -27,6 +27,9 @@ preserving the most recent unique occurrence of each command.
 *-b*, *--backup*
 	Create a .backup copy of the history file before modifying it.
 
+*-w*, *--which-file*
+	Print the path to the detected history file and exit.
+
 *-i*, *--input* <FILE>
 	Read history from <file> instead of the default shell
 	history file.

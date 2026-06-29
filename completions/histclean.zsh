@@ -11,6 +11,7 @@ _histclean() {
     '(-v --version)'{-v,--version}'[show version and exit]' \
     '(-d --dry-run)'{-d,--dry-run}'[print cleaned output to stdout without modifying anything]' \
     '(-b --backup)'{-b,--backup}'[create a backup of the history file before modifying]' \
+    '(-w --which-file)'{-w,--which-file}'[Print the path to the detected history file and exit]' \
     '(-i --input)'{-i,--input}'[read history from file]:input file:_files' \
     '(-o --output)'{-o,--output}'[write result to file]:output file:_files' \
     '(-c --completion)'{-c,--completion}'[generate completion script for shell]:shell:(bash zsh)'

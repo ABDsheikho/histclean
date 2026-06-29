@@ -15,7 +15,7 @@ _histclean() {
             ;;
     esac
 
-    local opts="-h --help -v --version -d --dry-run -b --backup -c --completion -i --input -o --output"
+    local opts="-h --help -v --version -d --dry-run -b --backup -w --which-file -c --completion -i --input -o --output"
     COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
     return 0
 }
