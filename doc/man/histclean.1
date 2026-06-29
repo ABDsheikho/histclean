@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "HISTCLEAN" "1" "2026-06-27" "" "General Commands Manual"
+.TH "HISTCLEAN" "1" "2026-06-29" "" "General Commands Manual"
 .P
 .SH NAME
 .P
@@ -42,6 +42,11 @@ Print the resulted output to stdout without modifying anything.\&
 Create a .\&backup copy of the history file before modifying it.\&
 .P
 .RE
+\fB-w\fR, \fB--which-file\fR
+.RS 4
+Print the path to the detected history file and exit.\&
+.P
+.RE
 \fB-i\fR, \fB--input\fR <FILE>
 .RS 4
 Read history from <file> instead of the default shell
@@ -61,7 +66,7 @@ it.\&
 .RE
 \fB-c\fR, \fB--completion\fR <SHELL>
 .RS 4
-Generate the autocompletion script by provieding the specified shell.\&
+Generate completion script by provieding the specified shell.\&
 \fB<SHELL>\fR can be \fBbash\fR, \fBzsh\fR.\&
 .P
 .RE
