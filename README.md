@@ -65,7 +65,7 @@ eval "$(histclean --completion bash)"   # Or zsh
 
 ### via AUR on arch linux
 
-`histclean` is available on [the AUR](https://github.com/ABDsheikho/histclean). So you can install it using `yay` or any other AUR-helper
+`histclean` is available on [the AUR](https://aur.archlinux.org/packages/histclean-bin). So you can install it using `yay` or any other AUR-helper
 
 ```shel
 yay -S histclean-bin
