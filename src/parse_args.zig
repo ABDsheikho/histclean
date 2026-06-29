@@ -119,8 +119,8 @@ test "parseArgs: backup flag" {
 }
 
 test "parseArgs: input and output paths" {
-    const args = try parseArgsFromSlice(&.{ "-i", "test/history", "-o", "test/out" });
-    try testing.expectEqualStrings("test/history", args.input_path.?);
+    const args = try parseArgsFromSlice(&.{ "-i", "test/histroy.bash", "-o", "test/out" });
+    try testing.expectEqualStrings("test/histroy.bash", args.input_path.?);
     try testing.expectEqualStrings("test/out", args.output_path.?);
 }
 
@@ -131,10 +131,10 @@ test "parseArgs: missing path returns error" {
 }
 
 test "parseArgs: multiple flags" {
-    const args = try parseArgsFromSlice(&.{ "-d", "-b", "-i", "test/history" });
+    const args = try parseArgsFromSlice(&.{ "-d", "-b", "-i", "test/histroy.bash" });
     try testing.expectEqual(true, args.dryRun);
     try testing.expectEqual(true, args.backup);
-    try testing.expectEqualStrings("test/history", args.input_path.?);
+    try testing.expectEqualStrings("test/histroy.bash", args.input_path.?);
 }
 
 test "parseArgs: version flag" {

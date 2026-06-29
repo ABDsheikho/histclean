@@ -42,13 +42,13 @@ test "output-to-file matches expected" {
     const out_path = "test/history.out";
     defer Io.Dir.deleteFile(Io.Dir.cwd(), io, out_path) catch {};
 
-    const result = try runBin(&.{ bin_path, "-i", "test/history", "-o", out_path });
+    const result = try runBin(&.{ bin_path, "-i", "test/history.bash", "-o", out_path });
     defer testing.allocator.free(result.stdout);
     defer testing.allocator.free(result.stderr);
 
     try testing.expectEqual(@as(u32, 0), result.term.exited);
 
-    const expected = try readFile("test/history.expected");
+    const expected = try readFile("test/history.bash.expected");
     defer testing.allocator.free(expected);
 
     const actual = try readFile(out_path);
@@ -58,13 +58,13 @@ test "output-to-file matches expected" {
 }
 
 test "dry-run prints to stdout" {
-    const result = try runBin(&.{ bin_path, "-d", "-i", "test/history" });
+    const result = try runBin(&.{ bin_path, "-d", "-i", "test/history.bash" });
     defer testing.allocator.free(result.stdout);
     defer testing.allocator.free(result.stderr);
 
     try testing.expectEqual(@as(u32, 0), result.term.exited);
 
-    const expected = try readFile("test/history.expected");
+    const expected = try readFile("test/history.bash.expected");
     defer testing.allocator.free(expected);
 
     try testing.expectEqualStrings(expected, result.stdout);
@@ -75,7 +75,7 @@ test "backup creates .backup file" {
     const tmp_path_backup = "test/history-tmp.backup";
     defer Io.Dir.deleteFile(Io.Dir.cwd(), io, tmp_path_backup) catch {};
 
-    try Io.Dir.copyFile(Io.Dir.cwd(), "test/history", Io.Dir.cwd(), tmp_path, io, .{});
+    try Io.Dir.copyFile(Io.Dir.cwd(), "test/history.bash", Io.Dir.cwd(), tmp_path, io, .{});
     defer Io.Dir.deleteFile(Io.Dir.cwd(), io, tmp_path) catch {};
 
     const result = try runBin(&.{ bin_path, "-b", "-i", tmp_path, "-o", tmp_path });
@@ -84,7 +84,7 @@ test "backup creates .backup file" {
 
     try testing.expectEqual(@as(u32, 0), result.term.exited);
 
-    const original = try readFile("test/history");
+    const original = try readFile("test/history.bash");
     defer testing.allocator.free(original);
 
     const backup = try readFile(tmp_path_backup);
@@ -97,7 +97,7 @@ test "in-place modification" {
     const tmp_path = "test/history-tmp";
     defer Io.Dir.deleteFile(Io.Dir.cwd(), io, tmp_path) catch {};
 
-    try Io.Dir.copyFile(Io.Dir.cwd(), "test/history", Io.Dir.cwd(), tmp_path, io, .{});
+    try Io.Dir.copyFile(Io.Dir.cwd(), "test/history.bash", Io.Dir.cwd(), tmp_path, io, .{});
 
     const result = try runBin(&.{ bin_path, "-i", tmp_path });
     defer testing.allocator.free(result.stdout);
@@ -105,7 +105,7 @@ test "in-place modification" {
 
     try testing.expectEqual(@as(u32, 0), result.term.exited);
 
-    const expected = try readFile("test/history.expected");
+    const expected = try readFile("test/history.bash.expected");
     defer testing.allocator.free(expected);
 
     const actual = try readFile(tmp_path);
