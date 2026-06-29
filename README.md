@@ -33,7 +33,7 @@ zig build --prefix /usr/local
 
 ### Download
 
-If you downloaded the latest binary from [release](https://github.com/ABDsheikho/histclean/releases),
+If you downloaded the latest binary from [releases](https://github.com/ABDsheikho/histclean/releases),
 then you probably need to do the following commands:
 
 ```shell

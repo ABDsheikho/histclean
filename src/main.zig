@@ -78,8 +78,8 @@ fn printHelp(writer: *Io.Writer) !void {
         \\preserving the most recent unique occurrence of each command.
         \\
         \\Options:
-        \\  -h, --help             Show this help message and exit
-        \\  -v, --version          Show version and exit
+        \\  -h, --help             Show this help message and exit.
+        \\  -v, --version          Show version and exit.
         \\  -d, --dry-run          Print the resulted output to stdout without
         \\                         modifying anything.
         \\  -b, --backup           Create a .backup copy of the history file

@@ -108,7 +108,7 @@ test "parseArgs: help flag" {
     try testing.expectEqual(true, args.help);
 }
 
-test "parseArgs: dry-run flags" {
+test "parseArgs: dry-run flag" {
     try testing.expectEqual(true, (try parseArgsFromSlice(&.{"-d"})).dryRun);
     try testing.expectEqual(true, (try parseArgsFromSlice(&.{"--dry-run"})).dryRun);
 }
