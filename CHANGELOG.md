@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 — 2026-06-29
+
+- Add `--which-file` / `-w` flag to print the path to the detected history file
+- `filterLines` now returns `![]const []const u8` instead of `std.ArrayList` for a more
+  slice-oriented and allocator-flexible API
+- Rename test history files to `history.bash` / `history.bash.expected` to prepare for
+  multi-shell test support
+- Fix typos and small code tweaks
+- README: document Zig version compatibility, AUR installation, and binary downloads
+
 ## 0.2.0 — 2026-06-27
 
 - Add `--completion` / `-c` flag to generate completion scripts for bash and zsh
