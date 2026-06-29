@@ -15,11 +15,32 @@ cd histclean
 zig build install
 ```
 
+If that's your first time running `histclean`, don't forget to pass `--backup`
+option to backup your history file:
+
+```shell
+histclean -b
+```
+
 ## Requirements
 
 [Zig compiler](https://ziglang.org/download/) >= 0.16
 
+> [!NOTE]
+> Since Zig is pre 1.0 release, `histclean` will always follow the latest Zig release.
+
 ## Installation
+
+### Build
+
+First clone the repo:
+
+```shell
+git clone https://github.com/ABDsheikho/histclean.git
+cd histclean
+```
+
+Then build it using the Zig compiler:
 
 ```shell
 zig build install
@@ -40,6 +61,14 @@ then you probably need to do the following commands:
 mv histclean-v* histclean               # Clean the name
 chmod +x histclean                      # Make it an executable
 eval "$(histclean --completion bash)"   # Or zsh
+```
+
+### via AUR on arch linux
+
+`histclean` is available on [the AUR](https://github.com/ABDsheikho/histclean). So you can install it using `yay` or any other AUR-helper
+
+```shel
+yay -S histclean-bin
 ```
 
 Then you need to move the binary to your $PATH.
