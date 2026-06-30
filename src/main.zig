@@ -102,6 +102,8 @@ fn printHelp(writer: *Io.Writer) !void {
         \\                         of the default shell history file.
         \\  -o, --output <FILE>    Write resulted output to the specified file
         \\                         instead of overwriting the input file.
+        \\  -s, --shell <shell>    Override the shell type (bash, zsh) instead of
+        \\                         auto-detecting from $SHELL.
         \\  -c, --completion <shell>
         \\        Generate completion script for the specified shell (bash, zsh).
         \\

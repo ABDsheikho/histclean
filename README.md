@@ -95,7 +95,13 @@ variable, falling back to `$HOME/.bash_history` or `$HOME/.zsh_history` if
 | `-w`, `--which-file` | Print the path to the detected history file and exit |
 | `-i`, `--input <FILE>` | Read history from the specified file |
 | `-o`, `--output <FILE>` | Write resulted output to the specified file |
-| `-c`, `--completion <SHELL>` | Generate completion script for the specified shell (bash, zsh) |
+| `-s`, `--shell <SHELL>` | Override the shell type instead of auto-detecting from `$SHELL`. See [Supported shells](#supported-shells) below. |
+| `-c`, `--completion <SHELL>` | Generate completion script for the specified shell. See [Supported shells](#supported-shells) below. |
+
+## Supported shells
+
+- bash
+- zsh
 
 ## Examples
 

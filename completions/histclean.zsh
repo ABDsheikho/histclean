@@ -14,6 +14,7 @@ _histclean() {
     '(-w --which-file)'{-w,--which-file}'[Print the path to the detected history file and exit]' \
     '(-i --input)'{-i,--input}'[read history from file]:input file:_files' \
     '(-o --output)'{-o,--output}'[write result to file]:output file:_files' \
+    '(-s --shell)'{-s,--shell}'[override shell type instead of auto-detecting from $SHELL]:shell:(bash zsh)' \
     '(-c --completion)'{-c,--completion}'[generate completion script for shell]:shell:(bash zsh)'
 }
 
