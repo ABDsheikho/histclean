@@ -9,12 +9,16 @@ const _parse_args = @import("./parse_args.zig");
 pub const Args = _parse_args.Args;
 pub const parseArgs = _parse_args.parseArgs;
 pub const parseArgsFromSlice = _parse_args.parseArgsFromSlice;
+// lazy-analysis is a thing in Zig, and it won't run test in modules that aren't used!!
+comptime {
+    _ = _parse_args;
+}
 
 pub const err = @import("./err.zig");
 
 const _filter = @import("./filter.zig");
 const shellEnum_mapper = _filter.shellEnum_mapper;
-const ShellEnum = _filter.ShellEnum;
+pub const ShellEnum = _filter.ShellEnum;
 pub const filterLines = _filter.filterLines;
 
 pub fn getShell(env: *std.process.Environ.Map) !ShellEnum {
