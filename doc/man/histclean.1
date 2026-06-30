@@ -5,7 +5,7 @@
 .nh
 .ad l
 .\" Begin generated content:
-.TH "HISTCLEAN" "1" "2026-06-29" "" "General Commands Manual"
+.TH "HISTCLEAN" "1" "2026-06-30" "" "General Commands Manual"
 .P
 .SH NAME
 .P
@@ -50,10 +50,7 @@ Print the path to the detected history file and exit.\&
 \fB-i\fR, \fB--input\fR <FILE>
 .RS 4
 Read history from <file> instead of the default shell
-history file.\&
-\fBhistclean\fR will try first to lookup history file
-using $HISTFILE, then using $HOME/.\&bash_history.\& If no \fBhistory\fR file was
-found, a \fBCannotAnticipateHistoryFile\fR error will raise.\&
+history file (determined by $HISTFILE).\&
 .P
 .RE
 \fB-o\fR, \fB--output\fR <FILE>
@@ -64,31 +61,28 @@ Running the command multiple times to the same \fBoutput\fR will overwrite
 it.\&
 .P
 .RE
-\fB-c\fR, \fB--completion\fR <SHELL>
+\fB-s\fR, \fB--shell\fR <SHELL>
 .RS 4
-Generate completion script by provieding the specified shell.\&
-\fB<SHELL>\fR can be \fBbash\fR, \fBzsh\fR.\&
+Override the shell type instead of auto-detecting from \fB$SHELL\fR.\&
+See \fBSUPPORTED SHELLS\fR below for available shells.\&
 .P
 .RE
+\fB-c\fR, \fB--completion\fR <SHELL>
+.RS 4
+Generate completion script for the specified shell.\&
+See \fBSUPPORTED SHELLS\fR below for available shells.\&
+.P
+.RE
+.SH SUPPORTED SHELLS
+.P
+\fB bash
+\fR zsh
+.P
 .SH ENVIRONMENT
 .P
 \fBHISTFILE\fR
 .RS 4
-Path to the shell history file.\& If not set, defaults to
-\fB$HOME\fR/.\&bash_history.\&
+Path to the shell history file.\& Must be set or provided via
+\fB--input\fR.\&
 .P
-.RE
-\fBHOME\fR
-.RS 4
-Used to construct the default history path when \fBHISTFILE\fR is not
-set.\&
 .P
-.RE
-.SH LIMITATIONS
-.RS 4
-Currently, \fBhistclean\fR only have implementation of \fB.\&bash_history\fR file
-with their timestamps.\&
-.br
-	\fBhistclean\fR will work correctly with \fBEXTENDED_HISTORY\fR turned off.\&
-Meaning it does not have an implementation for parsing \fB.\&zsh_history\fR
-file with their timestamps.\&
