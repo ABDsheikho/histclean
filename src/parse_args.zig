@@ -3,7 +3,7 @@ const mem = std.mem;
 const testing = std.testing;
 
 const err = @import("./err.zig");
-const ShellEnum = @import("./root.zig").ShellEnum;
+const ShellEnum = @import("./filter.zig").ShellEnum;
 
 pub const Args = struct {
     help: bool = false,
@@ -187,8 +187,8 @@ test "parseArgs: shell flag" {
 }
 
 test "parseArgs: shell missing value returns error" {
-    try testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{"-s"}));
-    try testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{ "-s", "-d" }));
+    try testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"-s"}));
+    try testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{ "-s", "-d" }));
 }
 
 test "parseArgs: completion with flag instead of value returns error" {
