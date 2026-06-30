@@ -14,12 +14,7 @@ pub const Args = struct {
     input_path: ?[]const u8 = null,
     output_path: ?[]const u8 = null,
     shell: ?ShellEnum = null,
-    completion: ?Completion = null,
-};
-
-pub const Completion = enum {
-    bash,
-    zsh,
+    completion: ?ShellEnum = null,
 };
 
 const arg_to_enum_mapper = std.StaticStringMap(enum {
