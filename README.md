@@ -160,13 +160,6 @@ providing the associated shell (`bash`, `zsh`).
 eval "$(histclean --completion zsh)"
 ```
 
-## Limitations
-
-Currently, histclean only implements the `.bash_history` file format with
-its timestamps. It works correctly with `EXTENDED_HISTORY` turned off.
-There is no implementation for parsing `.zsh_history` files with their
-timestamps.
-
 ## License
 
 MIT

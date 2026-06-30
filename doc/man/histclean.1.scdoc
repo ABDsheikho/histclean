@@ -59,9 +59,4 @@ preserving the most recent unique occurrence of each command.
 	Path to the shell history file. Must be set or provided via
 	*--input*.
 
-# LIMITATIONS
-	Currently, *histclean* only have implementation of *.bash_history* file
-	with their timestamps.++
-	*histclean* will work correctly with *EXTENDED_HISTORY* turned off.
-	Meaning it does not have an implementation for parsing *.zsh_history*
-	file with their timestamps.
+
