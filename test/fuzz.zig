@@ -14,7 +14,7 @@ test "fuzz: filterLines with arbitrary bytes" {
 
         for (input) |*byte| byte.* = random.int(u8);
 
-        const result = histclean.filterLines(input, testing.allocator) catch continue;
+        const result = histclean.filterLines(.bash, input, testing.allocator) catch continue;
         defer testing.allocator.free(result);
 
         // Every returned slice must point into the input
@@ -38,10 +38,10 @@ test "fuzz: filterLines results are deterministic" {
 
         for (input) |*byte| byte.* = random.int(u8);
 
-        const r1 = try histclean.filterLines(input, testing.allocator);
+        const r1 = try histclean.filterLines(.bash, input, testing.allocator);
         defer testing.allocator.free(r1);
 
-        const r2 = try histclean.filterLines(input, testing.allocator);
+        const r2 = try histclean.filterLines(.bash, input, testing.allocator);
         defer testing.allocator.free(r2);
 
         try testing.expectEqual(r1.len, r2.len);
@@ -61,7 +61,7 @@ test "fuzz: filterLines with shell-like data has no duplicates" {
 
         for (input) |*byte| byte.* = chars[random.uintLessThan(usize, chars.len)];
 
-        const result = histclean.filterLines(input, testing.allocator) catch continue;
+        const result = histclean.filterLines(.bash, input, testing.allocator) catch continue;
         defer testing.allocator.free(result);
 
         for (result, 0..) |a, i_| {

@@ -62,7 +62,11 @@ fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: m
     const content = try readFileContent(histfile_path, io, allocator);
     defer allocator.free(content);
 
-    const new_lines = try histclean.filterLines(content, allocator);
+    const new_lines = try histclean.filterLines(
+        args.shell orelse try histclean.getShell(env),
+        content,
+        allocator,
+    );
     defer allocator.free(new_lines);
 
     const output_file = try openOutputFile(args, io, histfile_path);

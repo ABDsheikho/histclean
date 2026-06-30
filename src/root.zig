@@ -12,7 +12,39 @@ pub const parseArgsFromSlice = _parse_args.parseArgsFromSlice;
 
 pub const err = @import("./err.zig");
 
-pub fn filterLines(content: []const u8, allocator: mem.Allocator) ![]const []const u8 {
+pub const ShellEnum = enum {
+    bash,
+    zsh,
+    // fish,
+};
+
+pub const shellEnum_mapper = std.StaticStringMap(ShellEnum).initComptime(.{
+    .{ "bash", .bash },
+    .{ "zsh", .zsh },
+    // .{ "fish", .fish },
+});
+
+pub fn getShell(env: *std.process.Environ.Map) !ShellEnum {
+    if (env.get("SHELL")) |path| {
+        const s = std.Io.Dir.path.basename(path);
+        if (shellEnum_mapper.get(s)) |val| {
+            return val;
+        } else {
+            return err.Errors.UnsupportedShellError;
+        }
+    } else {
+        return err.Errors.UnsupportedShellError;
+    }
+}
+
+pub fn filterLines(shell: ShellEnum, content: []const u8, allocator: mem.Allocator) ![]const []const u8 {
+    switch (shell) {
+        .bash => return try filterBash(content, allocator),
+        .zsh => return try filterZsh(content, allocator),
+    }
+}
+
+fn filterBash(content: []const u8, allocator: mem.Allocator) ![]const []const u8 {
     // define lines as array of strings
     var lines: std.ArrayList([]const u8) = .empty;
 
@@ -42,6 +74,42 @@ pub fn filterLines(content: []const u8, allocator: mem.Allocator) ![]const []con
     return lines.toOwnedSlice(allocator);
 }
 
+fn filterZsh(content: []const u8, allocator: mem.Allocator) ![]const []const u8 {
+    // define lines as array of strings
+    var lines: std.ArrayList([]const u8) = .empty;
+
+    // Read content from end to start
+    var backward_lines = mem.splitBackwardsAny(u8, content, "\n\r");
+
+    // define a set to keep record of unique lines
+    var hash_set: std.StringHashMap(void) = .init(allocator);
+    defer hash_set.deinit();
+
+    while (backward_lines.next()) |line| {
+        const clean_line = mem.trim(u8, line, " \t");
+
+        // try to parse zsh command template <: start:elapsed;command>
+        var tokern_iter = mem.tokenizeAny(u8, clean_line, ":;");
+        _ = tokern_iter.next();
+        const zsh_identifier = tokern_iter.next();
+        const cmd = tokern_iter.next() orelse clean_line;
+
+        if (zsh_identifier) |_| {
+            // check if the _second_ identifier exists
+            // if it exists and cmd is equal to clean_line ->
+            // then cmd was empty in the first place -> continue
+            if (mem.eql(u8, cmd, clean_line)) continue;
+        }
+
+        if (hash_set.contains(cmd)) continue;
+
+        try hash_set.put(cmd, {});
+        try lines.append(allocator, clean_line);
+    }
+    std.mem.reverse([]const u8, lines.items);
+    return lines.toOwnedSlice(allocator);
+}
+
 pub fn writeLines(writer: *Io.Writer, lines: []const []const u8) !void {
     if (lines.len > 0) {
         // Write first line without \n newline char
@@ -65,7 +133,7 @@ test "filterLines: basic dedup removes duplicates" {
         \\echo bye
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 4), result.len);
@@ -84,7 +152,7 @@ test "filterLines: consecutive timestamps dedup to one" {
         \\echo bye
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 4), result.len);
@@ -95,7 +163,7 @@ test "filterLines: consecutive timestamps dedup to one" {
 }
 
 test "filterLines: single line" {
-    const result = try filterLines("echo hi", testing.allocator);
+    const result = try filterLines(.bash, "echo hi", testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 1), result.len);
@@ -109,7 +177,7 @@ test "filterLines: all duplicates" {
         \\echo hi
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 1), result.len);
@@ -121,14 +189,14 @@ test "filterLines: lines with trailing spaces are trimmed" {
         \\echo hi
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 1), result.len);
 }
 
 test "filterLines: empty input returns one empty line" {
-    const result = try filterLines("", testing.allocator);
+    const result = try filterLines(.bash, "", testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 1), result.len);
@@ -142,7 +210,7 @@ test "filterLines: no duplicates preserves all lines" {
         \\echo third
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 3), result.len);
@@ -158,7 +226,7 @@ test "filterLines: only timestamps dedup to last timestamp" {
         \\#789
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 1), result.len);
@@ -168,7 +236,7 @@ test "filterLines: only timestamps dedup to last timestamp" {
 test "filterLines: Windows-style CRLF line endings" {
     const input = "echo first\r\necho second\r\necho first\r\n";
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     // trailing \r\n produces an empty string (sorted last after reverse)
@@ -188,7 +256,7 @@ test "filterLines + writeLines: roundtrip via temp file" {
         \\echo bye
     ;
 
-    const result = try filterLines(input, testing.allocator);
+    const result = try filterLines(.bash, input, testing.allocator);
     defer testing.allocator.free(result);
 
     try testing.expectEqual(@as(usize, 4), result.len);
