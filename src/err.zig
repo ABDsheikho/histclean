@@ -3,8 +3,7 @@ const std = @import("std");
 pub const Errors = error{
     MissingPath,
     InvalidArgument,
-    HomeVariableNotSet,
-    CannotAnticipateHistoryFile,
+    CannotFindHistoryFile,
     UnsupportedShellError,
 };
 
@@ -59,20 +58,11 @@ pub fn printHomeVariableNotSet() void {
     std.debug.print(msg, .{});
 }
 
-pub fn printCannotAnticipateHistoryFile() void {
+pub fn printCannotFindHistoryFile() void {
     const msg =
-        \\Error: Can't anticipate history file location!
+        \\Error: Can't auto-detect history file using $HISTFILE!
         \\       Try to pass the file-path using --input option.
         \\           ex: histclean -i <file-path>
-        \\
-    ;
-    std.debug.print(msg, .{});
-}
-
-pub fn printFileNotFound() void {
-    const msg =
-        \\Error: File not found!
-        \\       Make sure that the file-path do exist.
         \\
     ;
     std.debug.print(msg, .{});

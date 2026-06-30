@@ -37,9 +37,7 @@ pub fn main(init: std.process.Init) !void {
 
     run(args, io, env, arena) catch |err| {
         switch (err) {
-            error.FileNotFound => histclean.err.printFileNotFound(),
-            histclean.err.Errors.CannotAnticipateHistoryFile => histclean.err.printCannotAnticipateHistoryFile(),
-            histclean.err.Errors.HomeVariableNotSet => histclean.err.printHomeVariableNotSet(),
+            histclean.err.Errors.CannotFindHistoryFile => histclean.err.printCannotFindHistoryFile(),
             histclean.err.Errors.UnsupportedShellError => histclean.err.printUnsupportedShell(),
             else => {
                 histclean.err.printDefaultErrTemp(err);
@@ -52,7 +50,9 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn run(args: histclean.Args, io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) !void {
-    const histfile_path = args.input_path orelse try anticipateHistFile(io, env, allocator);
+    const histfile_path = args.input_path orelse env.get("HISTFILE") orelse {
+        return histclean.err.Errors.CannotFindHistoryFile;
+    };
 
     if (args.which_file) return try printToStdout(io, "{s}\n", .{histfile_path});
 
@@ -117,32 +117,6 @@ fn printHelp(writer: *Io.Writer) !void {
 
 fn printVersion(writer: *Io.Writer) !void {
     try writer.print("histclean {s}\n", .{histclean.version});
-}
-
-fn anticipateHistFile(io: Io, env: *std.process.Environ.Map, allocator: mem.Allocator) ![]const u8 {
-    if (env.get("HISTFILE")) |histFile| return histFile;
-
-    const home = env.get("HOME") orelse return histclean.err.Errors.HomeVariableNotSet;
-
-    const bash_hist = try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".bash_history" });
-    if (pathExist(bash_hist, io)) |val| {
-        if (val) return bash_hist;
-    } else |err| return err;
-
-    const zsh_hist = try Io.Dir.path.join(allocator, &[_][]const u8{ home, ".zsh_history" });
-    if (pathExist(zsh_hist, io)) |val| {
-        if (val) return zsh_hist;
-    } else |err| return err;
-
-    return histclean.err.Errors.CannotAnticipateHistoryFile;
-}
-
-fn pathExist(path: []const u8, io: Io) !bool {
-    Io.Dir.access(Io.Dir.cwd(), io, path, .{}) catch |err| switch (err) {
-        error.FileNotFound => return false,
-        else => return err,
-    };
-    return true;
 }
 
 fn readFileContent(path: []const u8, io: Io, allocator: mem.Allocator) ![]u8 {
