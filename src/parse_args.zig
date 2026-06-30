@@ -39,7 +39,7 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     .{ "-b", .backup },
     .{ "--backup", .backup },
     .{ "-w", .which_file },
-    .{ "--which", .which_file },
+    .{ "--which-file", .which_file },
     .{ "-i", .input },
     .{ "--input", .input },
     .{ "-o", .output },
