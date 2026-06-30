@@ -181,9 +181,14 @@ test "parseArgs: completion missing value returns error" {
     try testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"--completion"}));
 }
 
-test "parseArgs: shell flag bash" {
+test "parseArgs: shell flag" {
     try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "-s", "bash" })).shell);
-    try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "--shell", "bash" })).shell);
+    try testing.expectEqual(.zsh, (try parseArgsFromSlice(&.{ "--shell", "zsh" })).shell);
+}
+
+test "parseArgs: shell missing value returns error" {
+    try testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{"-s"}));
+    try testing.expectError(err.Errors.MissingPath, parseArgsFromSlice(&.{ "-s", "-d" }));
 }
 
 test "parseArgs: completion with flag instead of value returns error" {

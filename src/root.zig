@@ -123,27 +123,39 @@ pub fn writeLines(writer: *Io.Writer, lines: []const []const u8) !void {
     try writer.flush();
 }
 
-test "filterLines: basic dedup removes duplicates" {
-    const input =
-        \\#123
-        \\echo hi
-        \\#456
-        \\echo hi
-        \\#789
-        \\echo bye
-    ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
+fn testFilterLines(shell: ShellEnum, input: []const u8, expected: []const []const u8) !void {
+    const result = try filterLines(shell, input, testing.allocator);
     defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 4), result.len);
-    try testing.expectEqualStrings("#456", result[0]);
-    try testing.expectEqualStrings("echo hi", result[1]);
-    try testing.expectEqualStrings("#789", result[2]);
-    try testing.expectEqualStrings("echo bye", result[3]);
+    try testing.expectEqual(expected.len, result.len);
+    for (expected, result) |e, a| try testing.expectEqualStrings(e, a);
 }
 
-test "filterLines: consecutive timestamps dedup to one" {
+test "filterLines: basic dedup removes duplicates" {
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        const input = switch (shell) {
+            .bash =>
+            \\#123
+            \\echo hi
+            \\#456
+            \\echo hi
+            \\#789
+            \\echo bye
+            ,
+            .zsh =>
+            \\: 100:0;echo first
+            \\: 200:0;echo second
+            \\: 300:0;echo first
+            ,
+        };
+        const expected = switch (shell) {
+            .bash => &[_][]const u8{ "#456", "echo hi", "#789", "echo bye" },
+            .zsh => &[_][]const u8{ ": 200:0;echo second", ": 300:0;echo first" },
+        };
+        try testFilterLines(shell, input, expected);
+    }
+}
+
+test "filterLines(bash): consecutive timestamps dedup to one" {
     const input =
         \\#123
         \\echo hi
@@ -151,23 +163,14 @@ test "filterLines: consecutive timestamps dedup to one" {
         \\#789
         \\echo bye
     ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 4), result.len);
-    try testing.expectEqualStrings("#123", result[0]);
-    try testing.expectEqualStrings("echo hi", result[1]);
-    try testing.expectEqualStrings("#789", result[2]);
-    try testing.expectEqualStrings("echo bye", result[3]);
+    const expected = &[_][]const u8{ "#123", "echo hi", "#789", "echo bye" };
+    try testFilterLines(.bash, input, expected);
 }
 
 test "filterLines: single line" {
-    const result = try filterLines(.bash, "echo hi", testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 1), result.len);
-    try testing.expectEqualStrings("echo hi", result[0]);
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, "echo hi", &.{"echo hi"});
+    }
 }
 
 test "filterLines: all duplicates" {
@@ -176,11 +179,9 @@ test "filterLines: all duplicates" {
         \\echo hi
         \\echo hi
     ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 1), result.len);
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, input, &.{"echo hi"});
+    }
 }
 
 test "filterLines: lines with trailing spaces are trimmed" {
@@ -188,19 +189,15 @@ test "filterLines: lines with trailing spaces are trimmed" {
         \\echo hi  
         \\echo hi
     ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 1), result.len);
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, input, &.{"echo hi"});
+    }
 }
 
 test "filterLines: empty input returns one empty line" {
-    const result = try filterLines(.bash, "", testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 1), result.len);
-    try testing.expectEqualStrings("", result[0]);
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, "", &.{""});
+    }
 }
 
 test "filterLines: no duplicates preserves all lines" {
@@ -209,76 +206,72 @@ test "filterLines: no duplicates preserves all lines" {
         \\echo second
         \\echo third
     ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 3), result.len);
-    try testing.expectEqualStrings("echo first", result[0]);
-    try testing.expectEqualStrings("echo second", result[1]);
-    try testing.expectEqualStrings("echo third", result[2]);
+    const expected = &[_][]const u8{ "echo first", "echo second", "echo third" };
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, input, expected);
+    }
 }
 
-test "filterLines: only timestamps dedup to last timestamp" {
+test "filterLines(bash): only timestamps dedup to last timestamp" {
     const input =
         \\#123
         \\#456
         \\#789
     ;
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    try testing.expectEqual(@as(usize, 1), result.len);
-    try testing.expectEqualStrings("#789", result[0]);
+    try testFilterLines(.bash, input, &.{"#789"});
 }
 
 test "filterLines: Windows-style CRLF line endings" {
     const input = "echo first\r\necho second\r\necho first\r\n";
-
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
-
-    // trailing \r\n produces an empty string (sorted last after reverse)
-    try testing.expectEqual(@as(usize, 3), result.len);
-    try testing.expectEqualStrings("echo second", result[0]);
-    try testing.expectEqualStrings("echo first", result[1]);
-    try testing.expectEqualStrings("", result[2]);
+    const expected = &[_][]const u8{ "echo second", "echo first", "" };
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        try testFilterLines(shell, input, expected);
+    }
 }
 
 test "filterLines + writeLines: roundtrip via temp file" {
-    const input =
-        \\#123
-        \\echo hi
-        \\#456
-        \\echo hi
-        \\#789
-        \\echo bye
-    ;
+    inline for (std.meta.tags(ShellEnum)) |shell| {
+        const input = switch (shell) {
+            .bash =>
+            \\#123
+            \\echo hi
+            \\#456
+            \\echo hi
+            \\#789
+            \\echo bye
+            ,
+            .zsh =>
+            \\: 100:0;echo first
+            \\: 200:0;echo second
+            \\: 300:0;echo first
+            ,
+        };
+        const expected_str = switch (shell) {
+            .bash => "#456\necho hi\n#789\necho bye",
+            .zsh => ": 200:0;echo second\n: 300:0;echo first",
+        };
 
-    const result = try filterLines(.bash, input, testing.allocator);
-    defer testing.allocator.free(result);
+        const result = try filterLines(shell, input, testing.allocator);
+        defer testing.allocator.free(result);
 
-    try testing.expectEqual(@as(usize, 4), result.len);
+        const dir = Io.Dir.cwd();
+        const tmp_path = "test-histclean-tmp.out";
+        const tmp_file = try Io.Dir.createFile(dir, testing.io, tmp_path, .{});
+        defer {
+            tmp_file.close(testing.io);
+            Io.Dir.deleteFile(dir, testing.io, tmp_path) catch {};
+        }
 
-    const dir = Io.Dir.cwd();
-    const tmp_path = "test-histclean-tmp.out";
-    const tmp_file = try Io.Dir.createFile(dir, testing.io, tmp_path, .{});
-    defer {
-        tmp_file.close(testing.io);
-        Io.Dir.deleteFile(dir, testing.io, tmp_path) catch {};
+        var tmp_writer = tmp_file.writer(testing.io, &.{});
+        try writeLines(&tmp_writer.interface, result);
+
+        const verify_file = try Io.Dir.openFile(dir, testing.io, tmp_path, .{ .mode = .read_only });
+        defer verify_file.close(testing.io);
+        const stat = try verify_file.stat(testing.io);
+        const buf = try testing.allocator.alloc(u8, stat.size);
+        defer testing.allocator.free(buf);
+        _ = try verify_file.readPositionalAll(testing.io, buf, 0);
+
+        try testing.expectEqualStrings(expected_str, buf);
     }
-
-    var tmp_writer = tmp_file.writer(testing.io, &.{});
-    try writeLines(&tmp_writer.interface, result);
-
-    // Read back and verify
-    const verify_file = try Io.Dir.openFile(dir, testing.io, tmp_path, .{ .mode = .read_only });
-    defer verify_file.close(testing.io);
-    const stat = try verify_file.stat(testing.io);
-    const buf = try testing.allocator.alloc(u8, stat.size);
-    defer testing.allocator.free(buf);
-    _ = try verify_file.readPositionalAll(testing.io, buf, 0);
-
-    try testing.expectEqualStrings("#456\necho hi\n#789\necho bye", buf);
 }
