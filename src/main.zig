@@ -40,6 +40,7 @@ pub fn main(init: std.process.Init) !void {
             error.FileNotFound => histclean.err.printFileNotFound(),
             histclean.err.Errors.CannotAnticipateHistoryFile => histclean.err.printCannotAnticipateHistoryFile(),
             histclean.err.Errors.HomeVariableNotSet => histclean.err.printHomeVariableNotSet(),
+            histclean.err.Errors.UnsupportedShellError => histclean.err.printUnsupportedShell(),
             else => {
                 histclean.err.printDefaultErrTemp(err);
                 return err;

@@ -77,3 +77,16 @@ pub fn printFileNotFound() void {
     ;
     std.debug.print(msg, .{});
 }
+
+pub fn printUnsupportedShell() void {
+    const msg =
+        \\Error: Unsupported shell.
+        \\
+        \\       If you would like histclean to support your shell,
+        \\       then fill an issue to:
+        \\           https://github.com/ABDsheikho/histclean
+        \\
+        \\
+    ;
+    std.debug.print(msg, .{});
+}
