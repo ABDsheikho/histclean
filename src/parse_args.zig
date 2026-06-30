@@ -3,6 +3,7 @@ const mem = std.mem;
 const testing = std.testing;
 
 const err = @import("./err.zig");
+const ShellEnum = @import("./root.zig").ShellEnum;
 
 pub const Args = struct {
     help: bool = false,
@@ -12,6 +13,7 @@ pub const Args = struct {
     which_file: bool = false,
     input_path: ?[]const u8 = null,
     output_path: ?[]const u8 = null,
+    shell: ?ShellEnum = null,
     completion: ?Completion = null,
 };
 
@@ -28,6 +30,7 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     which_file,
     input,
     output,
+    shell,
     completion,
 }).initComptime(.{
     .{ "-h", .help },
@@ -44,6 +47,8 @@ const arg_to_enum_mapper = std.StaticStringMap(enum {
     .{ "--input", .input },
     .{ "-o", .output },
     .{ "--output", .output },
+    .{ "-s", .shell },
+    .{ "--shell", .shell },
     .{ "-c", .completion },
     .{ "--completion", .completion },
 });
@@ -89,6 +94,20 @@ pub fn parseArgsFromSlice(args_slice: []const []const u8) !Args {
                     }
                     if (mem.eql(u8, v, "zsh")) {
                         arg_struct.completion = .zsh;
+                        continue;
+                    }
+                    return err.Errors.InvalidArgument;
+                },
+                .shell => {
+                    i += 1;
+                    if (i >= args_slice.len or mem.startsWith(u8, args_slice[i], "-")) return err.Errors.InvalidArgument;
+                    const v = args_slice[i];
+                    if (mem.eql(u8, v, "bash")) {
+                        arg_struct.shell = .bash;
+                        continue;
+                    }
+                    if (mem.eql(u8, v, "zsh")) {
+                        arg_struct.shell = .zsh;
                         continue;
                     }
                     return err.Errors.InvalidArgument;
@@ -165,6 +184,11 @@ test "parseArgs: completion flag zsh" {
 test "parseArgs: completion missing value returns error" {
     try testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"-c"}));
     try testing.expectError(err.Errors.InvalidArgument, parseArgsFromSlice(&.{"--completion"}));
+}
+
+test "parseArgs: shell flag bash" {
+    try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "-s", "bash" })).shell);
+    try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "--shell", "bash" })).shell);
 }
 
 test "parseArgs: completion with flag instead of value returns error" {
