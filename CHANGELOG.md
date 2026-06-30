@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 — 2026-06-30
+
+- Add `--shell` / `-s` flag to explicitly set the shell format (bash, zsh)
+- Add zsh history format support, including filterZsh and test samples
+  filterLines now handles zsh `EXTENDED_HISTORY`.
+- Modularize filterLines and related code into filter.zig
+- Remove Completion enum; clean up internal API
+- Remove fallback history file detection; require `$HISTFILE` to be set
+- Parameterize tests and fuzz over ShellEnum for both bash and zsh coverage
+- Add fuzz tests and shell value error tests for `--shell`
+- Update man page, README, and completions for all new flags and behavior
+- Remove outdated Limitations sections from README and man page
+- Fix lazy analysis of `parse_args.zig` so its test blocks are included in `zig build test`
+
 ## 0.2.1 — 2026-06-29
 
 - Add `--which-file` / `-w` flag to print the path to the detected history file
