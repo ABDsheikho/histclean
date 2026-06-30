@@ -83,8 +83,7 @@ When run without any options, `histclean` cleans the default history file on
 the system.
 
 `histclean` determines the default history file from the `HISTFILE` environment
-variable, falling back to `$HOME/.bash_history` or `$HOME/.zsh_history` if
-`HISTFILE` is not set.
+variable. If `HISTFILE` is not set, `histclean` exits with an error.
 
 | Option | Description |
 |---|---|

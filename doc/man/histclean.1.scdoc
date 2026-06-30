@@ -32,10 +32,7 @@ preserving the most recent unique occurrence of each command.
 
 *-i*, *--input* <FILE>
 	Read history from <file> instead of the default shell
-	history file.
-	*histclean* will try first to lookup history file
-	using $HISTFILE, then using $HOME/.bash_history. If no *history* file was
-	found, a *CannotAnticipateHistoryFile* error will raise.
+	history file (determined by $HISTFILE).
 
 *-o*, *--output* <FILE>
 	Write resulted output to the specified <file> instead of overwriting
@@ -59,12 +56,8 @@ preserving the most recent unique occurrence of each command.
 # ENVIRONMENT
 
 *HISTFILE*
-	Path to the shell history file. If not set, defaults to
-	*$HOME*/.bash_history.
-
-*HOME*
-	Used to construct the default history path when *HISTFILE* is not
-	set.
+	Path to the shell history file. Must be set or provided via
+	*--input*.
 
 # LIMITATIONS
 	Currently, *histclean* only have implementation of *.bash_history* file

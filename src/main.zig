@@ -107,8 +107,8 @@ fn printHelp(writer: *Io.Writer) !void {
         \\  -c, --completion <shell>
         \\        Generate completion script for the specified shell (bash, zsh).
         \\
-        \\The default history file is determined by the HISTFILE environment variable,
-        \\or $HOME/.bash_history if HISTFILE is not set.
+        \\The default history file is determined by the HISTFILE environment variable.
+        \\If HISTFILE is not set, histclean exits with an error.
         \\
         \\
     ;
