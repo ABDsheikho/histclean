@@ -153,13 +153,13 @@ test "parseArgs: version flag" {
 }
 
 test "parseArgs: completion flag bash" {
-    try testing.expect(try parseArgsFromSlice(&.{ "-c", "bash" }).completion == .bash);
-    try testing.expect(try parseArgsFromSlice(&.{ "--completion", "bash" }).completion == .bash);
+    try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "-c", "bash" })).completion);
+    try testing.expectEqual(.bash, (try parseArgsFromSlice(&.{ "--completion", "bash" })).completion);
 }
 
 test "parseArgs: completion flag zsh" {
-    try testing.expect(try parseArgsFromSlice(&.{ "-c", "zsh" }).completion == .zsh);
-    try testing.expect(try parseArgsFromSlice(&.{ "--completion", "zsh" }).completion == .zsh);
+    try testing.expectEqual(.zsh, (try parseArgsFromSlice(&.{ "-c", "zsh" })).completion);
+    try testing.expectEqual(.zsh, (try parseArgsFromSlice(&.{ "--completion", "zsh" })).completion);
 }
 
 test "parseArgs: completion missing value returns error" {
