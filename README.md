@@ -160,6 +160,164 @@ providing the associated shell (`bash`, `zsh`).
 eval "$(histclean --completion zsh)"
 ```
 
+## FAQ
+
+<details>
+	<summary>
+		Doesn't this tool can be done in a one-liner POSIX shell?
+	</summary>
+Yes, a core logic can be done in one line as:
+
+```shell
+tac "$HISTFILE" | awk '!seen[$0]++' | tac
+```
+
+If you prefer this kind of quick hacks, then go for it.
+
+</details>
+
+<details>
+	<summary>
+		Why 1k LoC in Zig when you can write it in a much smaller Python or JS?
+	</summary>
+	<p>
+		Shorter != better. LoC is a cost, not a virtue. What matters is what ships.
+		Python and JS add a runtime. histclean is a statically-linked binary meant to
+		be installed once and forgotten.
+	</p>
+</details>
+
+<details>
+	<summary>
+		This tool doesn't have <code>--watch</code>
+		option, what's good about it?
+	</summary>
+	<p>
+		<code>--watch</code>
+		turns a millisecond task into a daemon. That's what your shell's
+		<code>HISTCONTROL</code>
+		settings are for. histclean is for bulk cleanup, and you can
+		run it from cron or a hook if you need to.
+	</p>
+	<p>
+		Not every CLI needs to sit in your terminal.
+	</p>
+</details>
+
+<details>
+	<summary>
+		I downloaded the binary but can't run it. What's wrong?
+	</summary>
+	<p>
+		You probably need to <code>chmod +x</code>
+		it, then move it to a directory in your <code>$PATH</code>
+		like <code>~/.local/bin</code>
+		or <code>/usr/local/bin</code>.
+	</p>
+</details>
+
+<details>
+	<summary>
+		I ran histclean but my history file wasn't modified. Why?
+	</summary>
+	<p>
+		Most likely <code>HISTFILE</code>
+		isn't set, or histclean is targeting a different file
+		than you expect. To confirm that it's pointing at the right file, run:
+	</p>
+
+```shell
+histclean --which-file
+```
+
+</details>
+
+<details>
+	<summary>
+		Running <code>histclean</code>
+		broke my history file. What happened?
+	</summary>
+	<p>
+		histclean only keeps the most recent occurrence of each command and preserves
+		timestamp lines, and it doesn't invent or reorder lines.
+		If your history file has entries that seem wrong, they were already in your file.
+	</p>
+	<p>
+		Restore your backup if you used <code>--backup</code>.
+		If you didn't, consider file-recovery tools if necessary,
+		but the data was already in that state before histclean ran.
+	</p>
+</details>
+
+<details>
+	<summary>
+		Do I need Zig on my system to have this command?
+	</summary>
+	<p>
+		If you're on x86_64 Linux, then no. The releases page provides a prebuilt binary.
+		Download it, <code>chmod +x</code>
+		it, done. But if you're on a different OS/architecture,
+		you'll need the Zig compiler to build from source.
+	</p>
+</details>
+
+<details>
+	<summary>
+		Does histclean work with fish shell?
+	</summary>
+	<p>
+		No. Fish already handles this natively, and it never stores duplicate history
+		entries to begin with. You don't need histclean for that, and that's why we
+		currently don't support it.
+	</p>
+</details>
+
+<details>
+	<summary>
+		Can I ask to support my shell?
+	</summary>
+	<p>
+		Yes, just fill an issue and provide a history format or history sample,
+		and I'll work on it.
+	</p>
+</details>
+
+<details>
+	<summary>
+		Does histclean handle history files larger than X?
+	</summary>
+	<p>
+		Nothing you're likely to hit. A history file with 100k lines (~10MB) would use
+		maybe 20-30MB of RAM when loaded fully into memory, which is well within range.
+		Extremely large files (hundreds of MB) would be constrained by available memory.
+	</p>
+</details>
+
+<details>
+	<summary>
+		Can I use histclean with a custom/non-standard history file path?
+	</summary>
+	<p>
+		Yes. By default histclean reads <code>$HISTFILE</code>. If yours is non-standard,
+		just make sure it's exported. Or use <code>--input</code>
+		to bypass env detection entirely and target any file.
+	</p>
+</details>
+
+<details>
+	<summary>
+		I use bash as my shell, but I passed <code>--input</code>
+		to a zsh history file and nothing changed. Why?
+	</summary>
+	<p>
+		By default, histclean detects your shell (and its parsing mechanism) from
+		<code>$SHELL</code>, not from the file you pass with <code>--input</code>. So a zsh file gets parsed
+		with bash rules. Pass <code>--shell zsh</code>
+		alongside <code>--input</code>
+		to override.
+	</p>
+</details>
+
 ## License
 
 MIT
