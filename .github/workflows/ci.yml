@@ -11,10 +11,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check if Zig files changed
+        id: check
+        run: |
+          if ! git diff --name-only HEAD~1 | grep -q '.*\.zig$'; then
+            echo "No changes to any .zig files — skipping tests"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: mlugg/setup-zig@v2
+        if: steps.check.outputs.skip != 'true'
         with:
           version: 0.16.0
       - run: zig build test
+        if: steps.check.outputs.skip != 'true'
 
   man:
     if: github.event_name == 'push'
