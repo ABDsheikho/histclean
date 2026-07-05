@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 — 2026-07-05
+
+A minor release that aims to support other systems.
+
+- Add targets for macos and bsd to release builds
+  - aarch64-macos
+  - x86_64-macos
+  - aarch64-freebsd
+  - x86_64-freebsd
+- Various documentation and CI tweaks
+
 ## 0.3.0 — 2026-06-30
 
 - Add `--shell` / `-s` flag to explicitly set the shell format (bash, zsh)
