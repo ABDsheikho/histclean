@@ -16,6 +16,14 @@ jobs:
         include:
           - target: x86_64-linux
             os: ubuntu-latest
+          - target: aarch64-macos
+            os: ubuntu-latest
+          - target: x86_64-macos
+            os: ubuntu-latest
+          - target: aarch64-freebsd
+            os: ubuntu-latest
+          - target: x86_64-freebsd
+            os: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4

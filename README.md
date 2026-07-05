@@ -94,13 +94,8 @@ variable. If `HISTFILE` is not set, `histclean` exits with an error.
 | `-w`, `--which-file` | Print the path to the detected history file and exit |
 | `-i`, `--input <FILE>` | Read history from the specified file |
 | `-o`, `--output <FILE>` | Write resulted output to the specified file |
-| `-s`, `--shell <SHELL>` | Override the shell type instead of auto-detecting from `$SHELL`. See [Supported shells](#supported-shells) below. |
-| `-c`, `--completion <SHELL>` | Generate completion script for the specified shell. See [Supported shells](#supported-shells) below. |
-
-## Supported shells
-
-- bash
-- zsh
+| `-s`, `--shell <SHELL>` | Override the shell type instead of auto-detecting from `$SHELL`. See [Supported shells](#shells) below. |
+| `-c`, `--completion <SHELL>` | Generate completion script for the specified shell. See [Supported shells](#shells) below. |
 
 ## Examples
 
@@ -124,6 +119,21 @@ histclean --input ~/.bash_history --output ~/cleaned_history
 occurrence of each unique command line. Timestamp lines (prefixed with `#`)
 are preserved for their associated commands, and orphaned consecutive
 timestamps are collapsed.
+
+## Support
+
+### Shells
+
+- bash
+- zsh
+
+### Platforms
+
+- x86_64-linux
+- aarch64-macos
+- x86_64-macos
+- aarch64-freebsd
+- x86_64-freebsd
 
 ## Build Options
 
@@ -254,9 +264,12 @@ histclean --which-file
 		Do I need Zig on my system to have this command?
 	</summary>
 	<p>
-		If you're on x86_64 Linux, then no. The releases page provides a prebuilt binary.
-		Download it, <code>chmod +x</code>
-		it, done. But if you're on a different OS/architecture,
+		If your OS/Architecture is listed on
+		<a href="#Platforms">supported platforms</a>,
+		then no. The releases page provides a prebuilt binary. Download it,
+		<code>chmod +x</code>
+		it, done. <br>
+		But if you're on a different OS/architecture,
 		you'll need the Zig compiler to build from source.
 	</p>
 </details>
