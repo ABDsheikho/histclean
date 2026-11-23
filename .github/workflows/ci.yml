@@ -25,7 +25,7 @@ jobs:
       - uses: mlugg/setup-zig@v2
         if: steps.check.outputs.skip != 'true'
         with:
-          version: 0.16.0
+          version: 0.17.1
       - run: zig build test
         if: steps.check.outputs.skip != 'true'
 
@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 2
       - uses: mlugg/setup-zig@v2
         with:
-          version: 0.16.0
+          version: 0.17.1
       - name: Generate and push man page if scdoc source changed
         run: |
           if ! git diff --name-only HEAD~1 | grep -q 'doc/man/.*\.scdoc'; then

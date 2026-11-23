@@ -7,7 +7,7 @@ the most recent occurrence of each command.
 
 You can either download the latest binary from [releases](https://github.com/ABDsheikho/histclean/releases) page.
 
-Or clone the repo, then build it with the Zig compiler (zig >= 0.16)
+Or clone the repo, then build it with the Zig compiler (zig >= 0.17.1)
 
 ```shell
 git clone https://github.com/ABDsheikho/histclean.git
@@ -24,7 +24,7 @@ histclean -b
 
 ## Requirements
 
-[Zig compiler](https://ziglang.org/download/) >= 0.16
+[Zig compiler](https://ziglang.org/download/) >= 0.17.1
 
 > [!NOTE]
 > Since Zig is pre 1.0 release, `histclean` will always follow the latest Zig release.
