@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-11-23
+
+- Upgrade to Zig 0.17.1
+  - Replace the removed `Build.args` field with `Run.addPassthruArgs()`
+  - Bump CI and release workflows to Zig 0.17.1
+  - Update `minimum_zig_version`, README, and `--version` output
+
 ## 0.4.0 — 2026-07-05
 
 A minor release that aims to support other systems.
